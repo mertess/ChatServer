@@ -1,7 +1,0 @@
-C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPServer\bin\Debug\ChatTCPServer.exe.config
-C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPServer\bin\Debug\ChatTCPServer.exe
-C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPServer\bin\Debug\ChatTCPServer.pdb
-C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPServer\obj\Debug\ChatTCPServer.csprojAssemblyReference.cache
-C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPServer\obj\Debug\ChatTCPServer.csproj.CoreCompileInputs.cache
-C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPServer\obj\Debug\ChatTCPServer.exe
-C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPServer\obj\Debug\ChatTCPServer.pdb
