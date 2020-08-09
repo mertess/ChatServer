@@ -1,0 +1,7 @@
+C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPTestClient\bin\Debug\ChatTCPTestClient.exe.config
+C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPTestClient\bin\Debug\ChatTCPTestClient.exe
+C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPTestClient\bin\Debug\ChatTCPTestClient.pdb
+C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPTestClient\obj\Debug\ChatTCPTestClient.csprojAssemblyReference.cache
+C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPTestClient\obj\Debug\ChatTCPTestClient.csproj.CoreCompileInputs.cache
+C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPTestClient\obj\Debug\ChatTCPTestClient.exe
+C:\Users\trtr\source\repos\ChatTCPServer\ChatTCPTestClient\obj\Debug\ChatTCPTestClient.pdb
