@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
@@ -7,6 +8,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ChatTCPServer.Service;
+using ChatTCPServer.Models;
+using System.Runtime.CompilerServices;
 
 namespace ChatTCPServer
 {
@@ -44,6 +48,19 @@ namespace ChatTCPServer
             }
         }
 
+        private void DisconnectServer()
+        {
+            foreach (var client in clients_)
+            {
+                client.SendMessage("Server stopped");
+                client.Disconnect();
+            }
+            Console.WriteLine("Server shutdown...");
+            tcpListener_.Stop();
+        }
+
+        #region ClientInterface
+
         public void BroadCastSend(string message, string id)
         {
             try
@@ -60,18 +77,17 @@ namespace ChatTCPServer
             }
         }
 
-        private void DisconnectServer()
+        public bool ClientAuthorization(string Login, string Password)
         {
-            foreach(var client in clients_)
+            using(ChatDatabaseContext context = new ChatDatabaseContext())
             {
-                client.SendMessage("Server stopped");
-                client.Disconnect();
+                return context.Users.FirstOrDefault(u => u.Login.Equals(Login) && u.Password.Equals(Password)) != null;
             }
-            Console.WriteLine("Server shutdown...");
-            tcpListener_.Stop();
         }
 
         public void AddConnection(Client client) => clients_.Add(client);
         public void RemoveConnection(Client client) => clients_.Remove(client);
+
+        #endregion
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChatTCPServer.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -31,11 +32,15 @@ namespace ChatTCPServer
         {
             try
             {
-                userName_ = GetMessage().Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0];
-                server_.BroadCastSend(userName_ + " online", Id);
-                while(true)
+                var data = GetMessage().Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                if (server_.ClientAuthorization(data[0], data[1]))
                 {
-                    server_.BroadCastSend(GetMessage(), Id);
+                    userName_ = data[2];
+                    server_.BroadCastSend(userName_ + " online", Id);
+                    while (true)
+                    {
+                        server_.BroadCastSend(GetMessage(), Id);
+                    }
                 }
             }
             catch(Exception e)
