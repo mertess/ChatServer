@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ChatTCPServer.Models;
+using ChatTCPServer.Models.DbModels;
 
 namespace ChatTCPServer.Service
 {
@@ -23,5 +23,6 @@ namespace ChatTCPServer.Service
         public virtual DbSet<Chat> Chats { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<RelatChatUsers> RelatChatUsers { get; set; }
+        public virtual DbSet<Message> Messages { get; set; }
     }
 }

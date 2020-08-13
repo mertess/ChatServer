@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 
 namespace ChatTCPServer.Interfaces
 {
-    public interface IChatLogic
+    public interface IMessageLogic
     {
-        void Create(Chat chat);
-        void Update(Chat chat);
-        void Delete(Chat chat);
-        List<Chat> Read(Chat chat);
+        void AddMessage(Message message);
+        void DeleteMessage(Message message);
+        List<Message> Read(Chat chat);
     }
 }

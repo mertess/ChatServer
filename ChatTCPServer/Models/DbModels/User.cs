@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChatTCPServer.Models
+namespace ChatTCPServer.Models.DbModels
 {
     public class User
     {
@@ -19,5 +19,7 @@ namespace ChatTCPServer.Models
         public string Password { get; set; }
         [ForeignKey("UserId")]
         public virtual List<RelatChatUsers> RelatChatUsers { get; set; }
+        [ForeignKey("UserId")]
+        public virtual List<Message> Messages { get; set; }
     }
 }

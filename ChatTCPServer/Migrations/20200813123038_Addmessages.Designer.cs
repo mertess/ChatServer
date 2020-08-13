@@ -4,14 +4,16 @@ using ChatTCPServer.Service;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ChatTCPServer.Migrations
 {
     [DbContext(typeof(ChatDatabaseContext))]
-    partial class ChatDatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20200813123038_Addmessages")]
+    partial class Addmessages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,7 +65,7 @@ namespace ChatTCPServer.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Message");
                 });
 
             modelBuilder.Entity("ChatTCPServer.Models.RelatChatUsers", b =>

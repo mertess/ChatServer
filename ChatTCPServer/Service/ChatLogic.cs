@@ -1,5 +1,5 @@
 ﻿using ChatTCPServer.Interfaces;
-using ChatTCPServer.Models;
+using ChatTCPServer.Models.DbModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,9 +25,9 @@ namespace ChatTCPServer.Service
         {
             using (ChatDatabaseContext context = new ChatDatabaseContext())
             {
-                Chat cht = context.Chats.FirstOrDefault(c => c.ChatName.Equals(chat.ChatName));
+                Chat cht = context.Chats.FirstOrDefault(c => c.Id == chat.Id);
                 if (cht == null)
-                    throw new Exception("Чата с таким названием нет в БД");
+                    throw new Exception("Чата с таким идентификатором нет в БД");
                 context.Chats.Remove(cht);
                 context.SaveChangesAsync();
             }
@@ -45,9 +45,11 @@ namespace ChatTCPServer.Service
         {
             using (ChatDatabaseContext context = new ChatDatabaseContext())
             {
-                Chat cht = context.Chats.FirstOrDefault(c => c.ChatName.Equals(chat.ChatName));
+                Chat cht = context.Chats.FirstOrDefault(c => c.Id == chat.Id);
                 if (cht == null)
-                    throw new Exception("Чата с таким названием нет в БД");
+                    throw new Exception("Чата с таким идентификатором нет в БД");
+                if (context.Chats.FirstOrDefault(c => c.ChatName.Equals(chat.ChatName)) != null)
+                    throw new Exception("Чат с таким названием уже есть в БД");
                 cht.ChatName = chat.ChatName;
                 cht.CountUsers = chat.CountUsers;
                 context.SaveChangesAsync();

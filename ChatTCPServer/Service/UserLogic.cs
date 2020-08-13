@@ -1,5 +1,5 @@
 ﻿using ChatTCPServer.Interfaces;
-using ChatTCPServer.Models;
+using ChatTCPServer.Models.DbModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +16,7 @@ namespace ChatTCPServer.Service
             {
                 if (context.Users.FirstOrDefault(u => u.Login.Equals(user.Login)) != null)
                     throw new Exception("Этот логин уже зарегистрирован!");
-                context.Users.Add(new User() { Login = user.Login, Password = user.Password };);
+                context.Users.Add(user);
                 context.SaveChangesAsync();
             }
         }
