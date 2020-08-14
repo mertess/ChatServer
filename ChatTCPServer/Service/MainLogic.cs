@@ -1,4 +1,5 @@
 ﻿using ChatTCPServer.Interfaces;
+using ChatTCPServer.Models;
 using ChatTCPServer.Models.DbModels;
 using Microsoft.Identity.Client;
 using System;
@@ -26,40 +27,64 @@ namespace ChatTCPServer.Service
         }
 
         #region UserOperations
-        public OperationsResults UserRegistration(User user)
+        public OperationResultInfo UserRegistration(User user)
         {
             try
             {
                 userLogic_.Create(user);
-                return OperationsResults.SuccessfullyRegistration;
+                return new OperationResultInfo()
+                {
+                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyRegistration),
+                    OperationResult = OperationsResults.SuccessfullyRegistration
+                };
             }
             catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return OperationsResults.UnsuccessfullyRegistration;
+                return new OperationResultInfo()
+                {
+                    Info = ex.Message,
+                    OperationResult = OperationsResults.UnsuccessfullyRegistration
+                };
             }
         }
 
-        public OperationsResults UserAuthorization(User user)
+        public OperationResultInfo UserAuthorization(User user)
         {
             if(userLogic_.Read(user) != null)
             {
-                return OperationsResults.SuccessfullyAuthorization;
+                return new OperationResultInfo()
+                {
+                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyAuthorization),
+                    OperationResult = OperationsResults.SuccessfullyAuthorization
+                };
             }
-            return OperationsResults.UnsuccessfullyAuthorization;
+            return new OperationResultInfo()
+            {
+                Info = "Неправильный логин или пароль",
+                OperationResult = OperationsResults.UnsuccessfullyAuthorization
+            };
         }
 
-        public OperationsResults UserProfileUpdate(User user)
+        public OperationResultInfo UserProfileUpdate(User user)
         {
             try
             {
                 userLogic_.Update(user);
-                return OperationsResults.SuccessfullyProfileUpdate;
+                return new OperationResultInfo()
+                {
+                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyProfileUpdate),
+                    OperationResult = OperationsResults.SuccessfullyProfileUpdate
+                };
             }
             catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return OperationsResults.UnsuccessfullyProfileUpdate;
+                return new OperationResultInfo()
+                {
+                    Info = ex.Message,
+                    OperationResult = OperationsResults.UnsuccessfullyProfileUpdate
+                };
             }
         }
 
@@ -77,75 +102,115 @@ namespace ChatTCPServer.Service
         #endregion
         #region ChatOperations
 
-        public OperationsResults CreateChat(Chat chat)
+        public OperationResultInfo CreateChat(Chat chat)
         {
             try
             {
                 chatLogic_.Create(chat);
-                return OperationsResults.SuccessfullyChatCreate;
+                return new OperationResultInfo()
+                {
+                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyChatCreate),
+                    OperationResult = OperationsResults.SuccessfullyChatCreate
+                };
             }
             catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return OperationsResults.UnsuccessfullyChatCreate;
+                return new OperationResultInfo()
+                {
+                    Info = ex.Message,
+                    OperationResult = OperationsResults.UnsuccessfullyChatCreate
+                };
             }
         }
 
-        public OperationsResults ChatUpdate(Chat chat)
+        public OperationResultInfo ChatUpdate(Chat chat)
         {
             try
             {
                 chatLogic_.Update(chat);
-                return OperationsResults.SuccessfullyChatUpdate;
+                return new OperationResultInfo()
+                {
+                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyChatUpdate),
+                    OperationResult = OperationsResults.SuccessfullyChatUpdate
+                };
             }
             catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return OperationsResults.UnsuccessfullyChatUpdate;
+                return new OperationResultInfo()
+                {
+                    Info = ex.Message,
+                    OperationResult = OperationsResults.UnsuccessfullyChatUpdate
+                };
             }
         }
 
-        public OperationsResults ChatDelete(Chat chat)
+        public OperationResultInfo ChatDelete(Chat chat)
         {
             try
             {
                 chatLogic_.Delete(chat);
-                return OperationsResults.SuccessfullyChatRemove;
+                return new OperationResultInfo()
+                {
+                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyChatRemove),
+                    OperationResult = OperationsResults.SuccessfullyChatRemove
+                };
             }
             catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return OperationsResults.UnsuccessfullyChatRemove;
+                return new OperationResultInfo()
+                {
+                    Info = ex.Message,
+                    OperationResult = OperationsResults.UnsuccessfullyChatRemove
+                };
             }
         }
         #endregion
         #region RelatChatUserOperations
 
-        public OperationsResults AddUserToChat(User user, Chat chat)
+        public OperationResultInfo AddUserToChat(User user, Chat chat)
         {
             try
             {
                 relatChatUserLogic_.AddUserToChat(user, chat);
-                return OperationsResults.SuccessfullyAddUserToChat;
+                return new OperationResultInfo()
+                {
+                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyAddUserToChat),
+                    OperationResult = OperationsResults.SuccessfullyAddUserToChat
+                };
             }
             catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return OperationsResults.UnsuccessfullyAddUserToChat;
+                return new OperationResultInfo()
+                {
+                    Info = ex.Message,
+                    OperationResult = OperationsResults.UnsuccessfullyAddUserToChat
+                };
             }
         }
 
-        public OperationsResults RemoveUserFromChat(User user, Chat chat)
+        public OperationResultInfo RemoveUserFromChat(User user, Chat chat)
         {
             try
             {
                 relatChatUserLogic_.RemoveUserFromChat(user, chat);
-                return OperationsResults.SuccessfullyRemoveUserFromChat;
+                return new OperationResultInfo()
+                {
+                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyRemoveUserFromChat),
+                    OperationResult = OperationsResults.SuccessfullyRemoveUserFromChat
+                };
             }
             catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return OperationsResults.UnsuccessfullyRemoveUserFromChat;
+                return new OperationResultInfo()
+                {
+                    Info = ex.Message,
+                    OperationResult = OperationsResults.UnsuccessfullyRemoveUserFromChat
+                };
             }
         }
 

@@ -184,6 +184,7 @@
     <Compile Include="Models\DbModels\RelatChatUsers.cs" />
     <Compile Include="Models\DbModels\User.cs" />
     <Compile Include="Enums\OperationsResults.cs" />
+    <Compile Include="Models\OperationResultInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />
