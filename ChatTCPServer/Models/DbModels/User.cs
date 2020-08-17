@@ -11,7 +11,6 @@ namespace ChatTCPServer.Models.DbModels
     public class User
     {
         public int Id { get; set; }
-        [Required]
         public string UserName { get; set; }
         [Required]
         public string Login { get; set; }

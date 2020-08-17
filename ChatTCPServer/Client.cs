@@ -1,7 +1,10 @@
-﻿using ChatTCPServer.Models;
+﻿using ChatTCPServer.Enums;
+using ChatTCPServer.Models;
+using ChatTCPServer.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -32,15 +35,9 @@ namespace ChatTCPServer
         {
             try
             {
-                var data = GetMessage().Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
-                if (server_.ClientAuthorization(data[0], data[1]))
+                while(true)
                 {
-                    userName_ = data[2];
-                    server_.BroadCastSend(userName_ + " online", Id);
-                    while (true)
-                    {
-                        server_.BroadCastSend(GetMessage(), Id);
-                    }
+                    ProcessClientOperation(GetMessage());
                 }
             }
             catch(Exception e)
@@ -53,7 +50,21 @@ namespace ChatTCPServer
             }
         }
 
-        private string GetMessage()
+        private void ProcessClientOperation(ClientOperationMessage clientOperationMessage)
+        {
+            string[] data = clientOperationMessage.Data.ToString().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            switch(clientOperationMessage.Operation)
+            {
+                case ClientOperations.Authorization:
+                    SendMessage(server_.ClientAuthorization(data[0], data[1]));
+                    break;
+                case ClientOperations.Registration:
+                    SendMessage(server_.ClientRegistration(data[0], data[1]));
+                    break;
+            }
+        }
+
+        private ClientOperationMessage GetMessage()
         {
             byte[] data = new byte[64];
             StringBuilder stringBuilder = new StringBuilder();
@@ -62,15 +73,21 @@ namespace ChatTCPServer
                 networkStream_.Read(data, 0, 64);
                 stringBuilder.Append(Encoding.UTF8.GetString(data, 0, 64));
             } while (networkStream_.DataAvailable);
-
-            return stringBuilder.ToString().Trim(' ');
+            Console.WriteLine("Получено сообщение - " + Id + " " + stringBuilder.ToString());
+            var clientOperation = stringBuilder.ToString().Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+            return new ClientOperationMessage()
+            {
+                Operation = (ClientOperations)Enum.Parse(typeof(ClientOperations), clientOperation[0]),
+                Data = clientOperation[1]
+            };
         }
 
-        public void SendMessage(string message)
+        public void SendMessage(OperationResultInfo operationResultInfo)
         {
             try
             {
-                byte[] data = Encoding.UTF8.GetBytes(message);
+                Console.WriteLine("Отправлено сообщение - " + Id + " " + operationResultInfo.Info);
+                byte[] data = Encoding.UTF8.GetBytes(operationResultInfo.ToString());
                 networkStream_.Write(data, 0, data.Length);
             }
             catch(Exception ex)

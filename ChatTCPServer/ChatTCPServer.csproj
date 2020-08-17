@@ -162,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />
+    <Compile Include="Enums\ClientOperations.cs" />
     <Compile Include="Interfaces\IChatLogic.cs" />
     <Compile Include="Interfaces\IMessageLogic.cs" />
     <Compile Include="Interfaces\IRelatChatUserLogic.cs" />
@@ -178,7 +179,12 @@
     <Compile Include="Migrations\20200813123905_fixContext.designer.cs">
       <DependentUpon>20200813123905_fixContext.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20200817142216_UnuniqueFieldUserNickName.cs" />
+    <Compile Include="Migrations\20200817142216_UnuniqueFieldUserNickName.designer.cs">
+      <DependentUpon>20200817142216_UnuniqueFieldUserNickName.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\ChatDatabaseContextModelSnapshot.cs" />
+    <Compile Include="Models\ClientOperationMessage.cs" />
     <Compile Include="Models\DbModels\Chat.cs" />
     <Compile Include="Models\DbModels\Message.cs" />
     <Compile Include="Models\DbModels\RelatChatUsers.cs" />

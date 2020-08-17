@@ -5,6 +5,7 @@ using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,15 +16,18 @@ namespace ChatTCPServer.Service
         private readonly IChatLogic chatLogic_;
         private readonly IUserLogic userLogic_;
         private readonly IRelatChatUserLogic relatChatUserLogic_;
+        private readonly IMessageLogic messageLogic_;
 
         public MainLogic(
             IChatLogic chatLogic,
             IUserLogic userLogic,
-            IRelatChatUserLogic relatChatUserLogic)
+            IRelatChatUserLogic relatChatUserLogic,
+            IMessageLogic messageLogic)
         {
             chatLogic_ = chatLogic;
             userLogic_ = userLogic;
             relatChatUserLogic_ = relatChatUserLogic;
+            messageLogic_ = messageLogic;
         }
 
         #region UserOperations
@@ -210,6 +214,32 @@ namespace ChatTCPServer.Service
                 {
                     Info = ex.Message,
                     OperationResult = OperationsResults.UnsuccessfullyRemoveUserFromChat
+                };
+            }
+        }
+
+        #endregion
+        #region ServerDBOperations
+
+        public void AddMessage(Message message) => messageLogic_.AddMessage(message);
+        public OperationResultInfo DeleteMessage(Message message)
+        {
+            try
+            {
+                messageLogic_.DeleteMessage(message);
+                return new OperationResultInfo()
+                {
+                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyRemoveMessage),
+                    OperationResult = OperationsResults.SuccessfullyRemoveMessage
+                };
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new OperationResultInfo()
+                {
+                    Info = ex.Message,
+                    OperationResult = OperationsResults.UnsuccessfullyRemoveMessage
                 };
             }
         }

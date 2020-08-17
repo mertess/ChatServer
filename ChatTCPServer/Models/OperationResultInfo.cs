@@ -10,5 +10,10 @@ namespace ChatTCPServer.Models
     {
         public string Info { get; set; }
         public OperationsResults OperationResult { get; set; }
+
+        public override string ToString()
+        {
+            return Enum.GetName(typeof(OperationsResults), OperationResult) + ":" + Info;
+        }
     }
 }

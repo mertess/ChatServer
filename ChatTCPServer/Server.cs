@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
@@ -10,7 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using ChatTCPServer.Service;
 using ChatTCPServer.Models;
+using ChatTCPServer.Models.DbModels;
 using System.Runtime.CompilerServices;
+using ChatTCPServer.Interfaces;
 
 namespace ChatTCPServer
 {
@@ -18,11 +19,13 @@ namespace ChatTCPServer
     {
         private TcpListener tcpListener_;
         private List<Client> clients_;
+        private MainLogic mainLogic_;
         
         public Server(string Address, int Port)
         {
             tcpListener_ = new TcpListener(IPAddress.Parse(Address), Port);
             clients_ = new List<Client>();
+            mainLogic_ = new MainLogic(new ChatLogic(), new UserLogic(), new RelatChatUserLogic(), new MessageLogic());
         }
 
         public void Listening()
@@ -52,7 +55,7 @@ namespace ChatTCPServer
         {
             foreach (var client in clients_)
             {
-                client.SendMessage("Server stopped");
+                //client.SendMessage("Server stopped");
                 client.Disconnect();
             }
             Console.WriteLine("Server shutdown...");
@@ -68,8 +71,8 @@ namespace ChatTCPServer
                 Console.WriteLine(message);
                 foreach (var client in clients_)
                 {
-                    if(client.Id != id)
-                        client.SendMessage(message);
+                    //if(client.Id != id)
+                        //client.SendMessage(message);
                 }
             }catch(Exception ex)
             {
@@ -77,12 +80,14 @@ namespace ChatTCPServer
             }
         }
 
-        public bool ClientAuthorization(string Login, string Password)
+        public OperationResultInfo ClientAuthorization(string Login, string Password)
         {
-            using(ChatDatabaseContext context = new ChatDatabaseContext())
-            {
-                return context.Users.FirstOrDefault(u => u.Login.Equals(Login) && u.Password.Equals(Password)) != null;
-            }
+            return mainLogic_.UserAuthorization(new User() { Login = Login, Password = Password });
+        }
+
+        public OperationResultInfo ClientRegistration(string Login, string Password)
+        {
+            return mainLogic_.UserRegistration(new User() { Login = Login, Password = Password });
         }
 
         public void AddConnection(Client client) => clients_.Add(client);

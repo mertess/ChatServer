@@ -12,12 +12,12 @@ namespace ChatTCPServer.Service
     {
         public void Create(User user)
         {
-            using(ChatDatabaseContext context = new ChatDatabaseContext())
+            using (ChatDatabaseContext context = new ChatDatabaseContext())
             {
                 if (context.Users.FirstOrDefault(u => u.Login.Equals(user.Login)) != null)
                     throw new Exception("Этот логин уже зарегистрирован!");
                 context.Users.Add(user);
-                context.SaveChangesAsync();
+                context.SaveChanges();
             }
         }
 

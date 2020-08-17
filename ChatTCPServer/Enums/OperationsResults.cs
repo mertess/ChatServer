@@ -30,6 +30,9 @@ namespace ChatTCPServer
         UnsuccessfullyAddUserToChat,
 
         SuccessfullyRemoveUserFromChat,
-        UnsuccessfullyRemoveUserFromChat
+        UnsuccessfullyRemoveUserFromChat,
+
+        SuccessfullyRemoveMessage,
+        UnsuccessfullyRemoveMessage
     }
 }
