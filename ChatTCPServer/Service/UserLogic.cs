@@ -37,7 +37,8 @@ namespace ChatTCPServer.Service
         {
             using(ChatDatabaseContext context = new ChatDatabaseContext())
             {
-                return context.Users.Where(u => user == null || user.Login.Equals(user.Login)).ToList();
+                return context.Users.Where(u => user == null 
+                || user.Login.Equals(u.Login) && user.Password.Equals(u.Password)).ToList();
             }
         }
 

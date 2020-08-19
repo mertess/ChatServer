@@ -85,9 +85,20 @@ namespace ChatTCPServer
             return mainLogic_.UserAuthorization(new User() { Login = Login, Password = Password });
         }
 
-        public OperationResultInfo ClientRegistration(string Login, string Password)
+        public OperationResultInfo ClientRegistration(
+            string Login,
+            string Name,
+            string SecondName,
+            string Password)
         {
-            return mainLogic_.UserRegistration(new User() { Login = Login, Password = Password });
+            return mainLogic_.UserRegistration(new User()
+            { 
+                Login = Login, 
+                Password = Password,
+                Name = Name,
+                SecondName = SecondName,
+                UserName = Login
+            });
         }
 
         public void AddConnection(Client client) => clients_.Add(client);

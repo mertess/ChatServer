@@ -57,21 +57,21 @@ namespace ChatTCPServer
             {
                 case ClientOperations.Authorization:
                     SendMessage(server_.ClientAuthorization(data[0], data[1]));
-                    break;
+                    return;
                 case ClientOperations.Registration:
-                    SendMessage(server_.ClientRegistration(data[0], data[1]));
-                    break;
+                    SendMessage(server_.ClientRegistration(data[0], data[1], data[2], data[3]));
+                    return;
             }
         }
 
         private ClientOperationMessage GetMessage()
         {
-            byte[] data = new byte[64];
+            byte[] data = new byte[256];
             StringBuilder stringBuilder = new StringBuilder();
             do
             {
-                networkStream_.Read(data, 0, 64);
-                stringBuilder.Append(Encoding.UTF8.GetString(data, 0, 64));
+                int countBytes = networkStream_.Read(data, 0, 256);
+                stringBuilder.Append(Encoding.UTF8.GetString(data, 0, countBytes));
             } while (networkStream_.DataAvailable);
             Console.WriteLine("Получено сообщение - " + Id + " " + stringBuilder.ToString());
             var clientOperation = stringBuilder.ToString().Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);

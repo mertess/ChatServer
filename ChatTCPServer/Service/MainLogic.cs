@@ -55,19 +55,31 @@ namespace ChatTCPServer.Service
 
         public OperationResultInfo UserAuthorization(User user)
         {
-            if(userLogic_.Read(user) != null)
+            //some shit
+            try
+            {
+                if (userLogic_.Read(user)[0] != null)
+                {
+                    return new OperationResultInfo()
+                    {
+                        Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyAuthorization),
+                        OperationResult = OperationsResults.SuccessfullyAuthorization
+                    };
+                }
+                return new OperationResultInfo()
+                {
+                    Info = "Неправильный логин или пароль",
+                    OperationResult = OperationsResults.UnsuccessfullyAuthorization
+                };
+            }
+            catch (Exception)
             {
                 return new OperationResultInfo()
                 {
-                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyAuthorization),
-                    OperationResult = OperationsResults.SuccessfullyAuthorization
+                    Info = "Неправильный логин или пароль",
+                    OperationResult = OperationsResults.UnsuccessfullyAuthorization
                 };
             }
-            return new OperationResultInfo()
-            {
-                Info = "Неправильный логин или пароль",
-                OperationResult = OperationsResults.UnsuccessfullyAuthorization
-            };
         }
 
         public OperationResultInfo UserProfileUpdate(User user)

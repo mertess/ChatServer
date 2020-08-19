@@ -183,6 +183,10 @@
     <Compile Include="Migrations\20200817142216_UnuniqueFieldUserNickName.designer.cs">
       <DependentUpon>20200817142216_UnuniqueFieldUserNickName.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20200818115528_newFieldsUserModel.cs" />
+    <Compile Include="Migrations\20200818115528_newFieldsUserModel.designer.cs">
+      <DependentUpon>20200818115528_newFieldsUserModel.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\ChatDatabaseContextModelSnapshot.cs" />
     <Compile Include="Models\ClientOperationMessage.cs" />
     <Compile Include="Models\DbModels\Chat.cs" />
