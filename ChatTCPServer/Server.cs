@@ -7,11 +7,12 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ChatTCPServer.Service;
-using ChatTCPServer.Models;
-using ChatTCPServer.Models.DbModels;
+using ServerDatabaseSystem.Implementation;
+using ServerBusinessLogic.HelperModels;
+using ServerDatabaseSystem.DbModels;
 using System.Runtime.CompilerServices;
-using ChatTCPServer.Interfaces;
+using ServerBusinessLogic.BusinessLogic;
+using ServerBusinessLogic.ReceiveModels;
 
 namespace ChatTCPServer
 {
@@ -82,7 +83,7 @@ namespace ChatTCPServer
 
         public OperationResultInfo ClientAuthorization(string Login, string Password)
         {
-            return mainLogic_.UserAuthorization(new User() { Login = Login, Password = Password });
+            return mainLogic_.UserAuthorization(new UserReceiveModel() { Login = Login, Password = Password });
         }
 
         public OperationResultInfo ClientRegistration(
@@ -91,7 +92,7 @@ namespace ChatTCPServer
             string SecondName,
             string Password)
         {
-            return mainLogic_.UserRegistration(new User()
+            return mainLogic_.UserRegistration(new UserReceiveModel()
             { 
                 Login = Login, 
                 Password = Password,

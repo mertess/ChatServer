@@ -162,54 +162,28 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />
-    <Compile Include="Enums\ClientOperations.cs" />
-    <Compile Include="Interfaces\IChatLogic.cs" />
-    <Compile Include="Interfaces\IMessageLogic.cs" />
-    <Compile Include="Interfaces\IRelatChatUserLogic.cs" />
-    <Compile Include="Interfaces\IUserLogic.cs" />
-    <Compile Include="Migrations\20200811171857_init.cs" />
-    <Compile Include="Migrations\20200811171857_init.designer.cs">
-      <DependentUpon>20200811171857_init.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\20200813123038_Addmessages.cs" />
-    <Compile Include="Migrations\20200813123038_Addmessages.designer.cs">
-      <DependentUpon>20200813123038_Addmessages.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\20200813123905_fixContext.cs" />
-    <Compile Include="Migrations\20200813123905_fixContext.designer.cs">
-      <DependentUpon>20200813123905_fixContext.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\20200817142216_UnuniqueFieldUserNickName.cs" />
-    <Compile Include="Migrations\20200817142216_UnuniqueFieldUserNickName.designer.cs">
-      <DependentUpon>20200817142216_UnuniqueFieldUserNickName.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\20200818115528_newFieldsUserModel.cs" />
-    <Compile Include="Migrations\20200818115528_newFieldsUserModel.designer.cs">
-      <DependentUpon>20200818115528_newFieldsUserModel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\ChatDatabaseContextModelSnapshot.cs" />
     <Compile Include="Models\ClientOperationMessage.cs" />
-    <Compile Include="Models\DbModels\Chat.cs" />
-    <Compile Include="Models\DbModels\Message.cs" />
-    <Compile Include="Models\DbModels\RelatChatUsers.cs" />
-    <Compile Include="Models\DbModels\User.cs" />
-    <Compile Include="Enums\OperationsResults.cs" />
-    <Compile Include="Models\OperationResultInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />
-    <Compile Include="Service\ChatDatabaseContext.cs" />
-    <Compile Include="Service\ChatLogic.cs" />
-    <Compile Include="Service\MainLogic.cs" />
-    <Compile Include="Service\MessageLogic.cs" />
-    <Compile Include="Service\RelatChatUserLogic.cs" />
-    <Compile Include="Service\UserLogic.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\ServerBusinessLogic\ServerBusinessLogic.csproj">
+      <Project>{91e4de1c-badd-4e20-a77e-f45460dba4e2}</Project>
+      <Name>ServerBusinessLogic</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServerDatabaseSystem\ServerDatabaseSystem.csproj">
+      <Project>{6bac6c29-a52d-4c45-9757-b6a4d33fbb2f}</Project>
+      <Name>ServerDatabaseSystem</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Microsoft.Data.SqlClient.SNI.1.1.0\build\net46\Microsoft.Data.SqlClient.SNI.targets" Condition="Exists('..\packages\Microsoft.Data.SqlClient.SNI.1.1.0\build\net46\Microsoft.Data.SqlClient.SNI.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

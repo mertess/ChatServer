@@ -1,6 +1,6 @@
-﻿using ChatTCPServer.Enums;
-using ChatTCPServer.Models;
-using ChatTCPServer.Service;
+﻿using ChatTCPServer.Models;
+using ServerBusinessLogic.Enums;
+using ServerBusinessLogic.HelperModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,7 +53,7 @@ namespace ChatTCPServer
         private void ProcessClientOperation(ClientOperationMessage clientOperationMessage)
         {
             string[] data = clientOperationMessage.Data.ToString().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            switch(clientOperationMessage.Operation)
+            switch (clientOperationMessage.Operation)
             {
                 case ClientOperations.Authorization:
                     SendMessage(server_.ClientAuthorization(data[0], data[1]));
