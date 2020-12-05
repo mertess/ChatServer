@@ -13,28 +13,27 @@ namespace ServerDatabaseSystem.Implementation
     {
         public void AddUserToChat(UserReceiveModel userModel, ChatReceiveModel chatModel)
         {
-            using(ChatDatabaseContext context = new ChatDatabaseContext())
+            using(DatabaseContext context = new DatabaseContext())
             {
-                if (context.RelatChatUsers.FirstOrDefault(rcu => rcu.UserId == userModel.Id && rcu.ChatId == chatModel.Id) != null)
+                if (context.RelationChatUsers.FirstOrDefault(rcu => rcu.UserId == userModel.Id && rcu.ChatId == chatModel.Id) != null)
                     throw new Exception("Пользователь уже находится в данном чате");
-                context.RelatChatUsers.Add(new RelatChatUsers() { UserId = userModel.Id, ChatId = chatModel.Id });
+                context.RelationChatUsers.Add(new RelationChatUser() { UserId = userModel.Id, ChatId = chatModel.Id });
 
                 //добавление владельца чата (создателя)
                 Chat ch = context.Chats.FirstOrDefault(c => c.Id == chatModel.Id);
-                if (!ch.OwnerId.HasValue)
-                    ch.OwnerId = userModel.Id;
+                ch.CreatorId = userModel.Id;
                 context.SaveChanges();
             }
         }
 
         public void RemoveUserFromChat(UserReceiveModel userModel, ChatReceiveModel chatModel)
         {
-            using (ChatDatabaseContext context = new ChatDatabaseContext())
+            using (DatabaseContext context = new DatabaseContext())
             {
-                RelatChatUsers relatChatUsers = context.RelatChatUsers.FirstOrDefault(rcu => rcu.UserId == userModel.Id && rcu.ChatId == chatModel.Id);
+                RelationChatUser relatChatUsers = context.RelationChatUsers.FirstOrDefault(rcu => rcu.UserId == userModel.Id && rcu.ChatId == chatModel.Id);
                 if (relatChatUsers == null)
                     throw new Exception("Ошибка удаления пользователя из чата, пользователь не находися в данном чате");
-                context.RelatChatUsers.Remove(relatChatUsers);
+                context.RelationChatUsers.Remove(relatChatUsers);
                 context.SaveChanges();
             }
         }

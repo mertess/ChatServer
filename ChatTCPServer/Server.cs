@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ServerDatabaseSystem.Implementation;
-using ServerBusinessLogic.HelperModels;
+using ServerBusinessLogic.TransmissionModels;
 using ServerDatabaseSystem.DbModels;
 using System.Runtime.CompilerServices;
 using ServerBusinessLogic.BusinessLogic;

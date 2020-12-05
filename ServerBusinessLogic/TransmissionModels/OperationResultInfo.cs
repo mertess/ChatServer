@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServerBusinessLogic.HelperModels
+namespace ServerBusinessLogic.TransmissionModels
 {
     public class OperationResultInfo
     {

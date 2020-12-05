@@ -14,7 +14,7 @@ namespace ServerDatabaseSystem.Implementation
     {
         public void Create(UserReceiveModel userModel)
         {
-            using (ChatDatabaseContext context = new ChatDatabaseContext())
+            using (DatabaseContext context = new DatabaseContext())
             {
                 if (context.Users.FirstOrDefault(u => u.Login.Equals(userModel.Login)) != null)
                     throw new Exception("Этот логин уже зарегистрирован!");
@@ -33,7 +33,7 @@ namespace ServerDatabaseSystem.Implementation
 
         public void Delete(UserReceiveModel userModel)
         {
-            using(ChatDatabaseContext context = new ChatDatabaseContext())
+            using(DatabaseContext context = new DatabaseContext())
             {
                 User usr = context.Users.FirstOrDefault(u => u.Login.Equals(userModel.Login));
                 if (usr == null)
@@ -45,7 +45,7 @@ namespace ServerDatabaseSystem.Implementation
 
         public List<UserResponseModel> Read(UserReceiveModel userModel)
         {
-            using(ChatDatabaseContext context = new ChatDatabaseContext())
+            using(DatabaseContext context = new DatabaseContext())
             {
                 return context.Users.Where(u => userModel == null 
                 || userModel.Login.Equals(u.Login) && userModel.Password.Equals(u.Password))
@@ -64,7 +64,7 @@ namespace ServerDatabaseSystem.Implementation
 
         public void Update(UserReceiveModel userModel)
         {
-            using(ChatDatabaseContext context = new ChatDatabaseContext())
+            using(DatabaseContext context = new DatabaseContext())
             {
                 User usr = context.Users.FirstOrDefault(u => u.Login.Equals(userModel.Login));
                 if (usr == null)

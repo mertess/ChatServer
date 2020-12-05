@@ -14,7 +14,7 @@ namespace ServerDatabaseSystem.Implementation
     {
         public void Create(ChatReceiveModel chatModel)
         {
-            using(ChatDatabaseContext context = new ChatDatabaseContext())
+            using(DatabaseContext context = new DatabaseContext())
             { 
                 if (context.Chats.FirstOrDefault(c => c.ChatName.Equals(chatModel.ChatName)) != null)
                     throw new Exception("Чат с таким названием уже есть!");
@@ -25,7 +25,7 @@ namespace ServerDatabaseSystem.Implementation
 
         public void Delete(ChatReceiveModel chatModel)
         {
-            using (ChatDatabaseContext context = new ChatDatabaseContext())
+            using (DatabaseContext context = new DatabaseContext())
             {
                 Chat cht = context.Chats.FirstOrDefault(c => c.Id == chatModel.Id);
                 if (cht == null)
@@ -37,7 +37,7 @@ namespace ServerDatabaseSystem.Implementation
 
         public List<ChatResponseModel> Read(ChatReceiveModel chatModel)
         {
-            using(ChatDatabaseContext context = new ChatDatabaseContext())
+            using(DatabaseContext context = new DatabaseContext())
             {
                 return context.Chats.Where(c => chatModel == null || c.ChatName.Equals(chatModel.ChatName)).Select(c =>
                 new ChatResponseModel()
@@ -45,14 +45,14 @@ namespace ServerDatabaseSystem.Implementation
                     Id = c.Id,
                     ChatName = c.ChatName,
                     CountUsers = c.CountUsers,
-                    OwnerId = c.OwnerId
+                    OwnerId = c.CreatorId
                 }).ToList();
             }
         }
 
         public void Update(ChatReceiveModel chatModel)
         {
-            using (ChatDatabaseContext context = new ChatDatabaseContext())
+            using (DatabaseContext context = new DatabaseContext())
             {
                 Chat cht = context.Chats.FirstOrDefault(c => c.Id == chatModel.Id);
                 if (cht == null)

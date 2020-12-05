@@ -14,13 +14,13 @@ namespace ServerDatabaseSystem.Implementation
     {
         public void AddMessage(MessageReceiveModel messageModel)
         {
-            using(ChatDatabaseContext context = new ChatDatabaseContext())
+            using(DatabaseContext context = new DatabaseContext())
             {
                 context.Messages.Add(new Message()
                 {
                     Id = messageModel.Id,
                     ChatId = messageModel.ChatId,
-                    UserId = messageModel.UserId,
+                    FromUserId = messageModel.UserId,
                     UserMessage = messageModel.UserMassage
                 });
                 context.SaveChanges();
@@ -29,7 +29,7 @@ namespace ServerDatabaseSystem.Implementation
 
         public void DeleteMessage(MessageReceiveModel messageModel)
         {
-            using (ChatDatabaseContext context = new ChatDatabaseContext())
+            using (DatabaseContext context = new DatabaseContext())
             {
                 Message mess = context.Messages.FirstOrDefault(m => m.Id == messageModel.Id);
                 if (mess == null)
@@ -42,14 +42,14 @@ namespace ServerDatabaseSystem.Implementation
         //TODO : pagination
         public List<MessageResponseModel> Read(ChatReceiveModel chatModel)
         {
-            using (ChatDatabaseContext context = new ChatDatabaseContext())
+            using (DatabaseContext context = new DatabaseContext())
             {
                 return context.Messages.Where(m => chatModel == null || m.ChatId == chatModel.Id)
                     .Select(c => new MessageResponseModel()
                     {
                         Id = c.Id,
                         ChatId = c.ChatId,
-                        UserId = c.UserId,
+                        UserId = c.FromUserId,
                         UserMassage = c.UserMessage
                     })
                     .ToList();

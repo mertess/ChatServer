@@ -1,5 +1,5 @@
 ﻿using ServerBusinessLogic.Interfaces;
-using ServerBusinessLogic.HelperModels;
+using ServerBusinessLogic.TransmissionModels;
 using ServerBusinessLogic.Enums;
 using System;
 using System.Collections.Generic;

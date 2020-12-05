@@ -8,7 +8,7 @@ using ServerDatabaseSystem.DbModels;
 
 namespace ServerDatabaseSystem
 {
-    public class ChatDatabaseContext : DbContext
+    public class DatabaseContext : DbContext
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -22,7 +22,9 @@ namespace ServerDatabaseSystem
 
         public virtual DbSet<Chat> Chats { get; set; }
         public virtual DbSet<User> Users { get; set; }
-        public virtual DbSet<RelatChatUsers> RelatChatUsers { get; set; }
+        public virtual DbSet<RelationChatUser> RelationChatUsers { get; set; }
         public virtual DbSet<Message> Messages { get; set; }
+        public virtual DbSet<Friend> Friends { get; set; }
+        public virtual DbSet<Notification> Notifications { get; set; }
     }
 }
