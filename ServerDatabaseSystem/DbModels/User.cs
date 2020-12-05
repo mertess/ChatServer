@@ -1,4 +1,4 @@
-﻿using ServerDatabaseSystem.Enums;
+﻿using ServerBusinessLogic.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

@@ -1,6 +1,6 @@
 ﻿using ServerBusinessLogic.Interfaces;
 using ServerBusinessLogic.TransmissionModels;
-using ServerBusinessLogic.Enums;
+using ServerBusinessLogic.Enums.Transmission;
 using System;
 using System.Collections.Generic;
 using System.Linq;

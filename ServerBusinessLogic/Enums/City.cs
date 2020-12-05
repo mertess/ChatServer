@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ServerDatabaseSystem.Enums
+namespace ServerBusinessLogic.Enums
 {
     public enum City
     {

@@ -1,4 +1,4 @@
-﻿using ServerBusinessLogic.Enums;
+﻿using ServerBusinessLogic.Enums.Transmission;
 using System;
 using System.Collections.Generic;
 using System.Linq;

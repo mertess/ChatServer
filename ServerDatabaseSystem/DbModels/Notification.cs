@@ -17,5 +17,8 @@ namespace ServerDatabaseSystem.DbModels
 
         public int FromUserId { get; set; } 
         public virtual User FromUser { get; set; }
+
+        [Required]
+        public bool IsAccepted { get; set; }
     }
 }
