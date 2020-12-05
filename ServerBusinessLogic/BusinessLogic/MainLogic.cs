@@ -38,8 +38,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ToListener = ListenerType.RegistrationListener,
-                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyRegistration),
-                    OperationResult = OperationsResults.SuccessfullyRegistration,
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully,
                     Data = string.Empty
                 };
             }
@@ -49,8 +49,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ToListener = ListenerType.RegistrationListener,
-                    Info = ex.Message,
-                    OperationResult = OperationsResults.UnsuccessfullyRegistration,
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully,
                     Data = string.Empty
                 };
             }
@@ -58,22 +58,22 @@ namespace ServerBusinessLogic.BusinessLogic
 
         public OperationResultInfo UserAuthorization(UserReceiveModel userModel)
         {
-            var userList = userLogic_.Read(userModel);
-            if (userList.Count != 0 && userList[0] != null)
+            var user = userLogic_.Read(userModel)?[0];
+            if (user != null)
             {
                 return new OperationResultInfo()
                 {
                     ToListener = ListenerType.AuthorizationListener,
-                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyAuthorization),
-                    OperationResult = OperationsResults.SuccessfullyAuthorization,
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully,
                     Data = string.Empty
                 };
             }
             return new OperationResultInfo()
             {
                 ToListener = ListenerType.AuthorizationListener,
-                Info = "Неправильный логин или пароль",
-                OperationResult = OperationsResults.UnsuccessfullyAuthorization,
+                ErrorInfo = "Неправильный логин или пароль",
+                OperationResult = OperationsResults.Unsuccessfully,
                 Data = string.Empty
             };
         }
@@ -85,8 +85,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 userLogic_.Update(userModel);
                 return new OperationResultInfo()
                 {
-                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyProfileUpdate),
-                    OperationResult = OperationsResults.SuccessfullyProfileUpdate
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully
                 };
             }
             catch(Exception ex)
@@ -94,8 +94,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 Console.WriteLine(ex.Message);
                 return new OperationResultInfo()
                 {
-                    Info = ex.Message,
-                    OperationResult = OperationsResults.UnsuccessfullyProfileUpdate
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully
                 };
             }
         }
@@ -121,8 +121,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 chatLogic_.Create(chatModel);
                 return new OperationResultInfo()
                 {
-                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyChatCreate),
-                    OperationResult = OperationsResults.SuccessfullyChatCreate
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully
                 };
             }
             catch(Exception ex)
@@ -130,8 +130,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 Console.WriteLine(ex.Message);
                 return new OperationResultInfo()
                 {
-                    Info = ex.Message,
-                    OperationResult = OperationsResults.UnsuccessfullyChatCreate
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully
                 };
             }
         }
@@ -143,8 +143,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 chatLogic_.Update(chatModel);
                 return new OperationResultInfo()
                 {
-                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyChatUpdate),
-                    OperationResult = OperationsResults.SuccessfullyChatUpdate
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully
                 };
             }
             catch(Exception ex)
@@ -152,8 +152,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 Console.WriteLine(ex.Message);
                 return new OperationResultInfo()
                 {
-                    Info = ex.Message,
-                    OperationResult = OperationsResults.UnsuccessfullyChatUpdate
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully
                 };
             }
         }
@@ -165,8 +165,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 chatLogic_.Delete(chatModel);
                 return new OperationResultInfo()
                 {
-                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyChatRemove),
-                    OperationResult = OperationsResults.SuccessfullyChatRemove
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully
                 };
             }
             catch(Exception ex)
@@ -174,8 +174,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 Console.WriteLine(ex.Message);
                 return new OperationResultInfo()
                 {
-                    Info = ex.Message,
-                    OperationResult = OperationsResults.UnsuccessfullyChatRemove
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully
                 };
             }
         }
@@ -189,8 +189,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 relatChatUserLogic_.AddUserToChat(userModel, chatModel);
                 return new OperationResultInfo()
                 {
-                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyAddUserToChat),
-                    OperationResult = OperationsResults.SuccessfullyAddUserToChat
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully
                 };
             }
             catch(Exception ex)
@@ -198,8 +198,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 Console.WriteLine(ex.Message);
                 return new OperationResultInfo()
                 {
-                    Info = ex.Message,
-                    OperationResult = OperationsResults.UnsuccessfullyAddUserToChat
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully
                 };
             }
         }
@@ -211,8 +211,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 relatChatUserLogic_.RemoveUserFromChat(userModel, chatModel);
                 return new OperationResultInfo()
                 {
-                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyRemoveUserFromChat),
-                    OperationResult = OperationsResults.SuccessfullyRemoveUserFromChat
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully
                 };
             }
             catch(Exception ex)
@@ -220,8 +220,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 Console.WriteLine(ex.Message);
                 return new OperationResultInfo()
                 {
-                    Info = ex.Message,
-                    OperationResult = OperationsResults.UnsuccessfullyRemoveUserFromChat
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully
                 };
             }
         }
@@ -237,8 +237,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 messageLogic_.DeleteMessage(messageModel);
                 return new OperationResultInfo()
                 {
-                    Info = Enum.GetName(typeof(OperationsResults), OperationsResults.SuccessfullyRemoveMessage),
-                    OperationResult = OperationsResults.SuccessfullyRemoveMessage
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully
                 };
             }
             catch(Exception ex)
@@ -246,8 +246,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 Console.WriteLine(ex.Message);
                 return new OperationResultInfo()
                 {
-                    Info = ex.Message,
-                    OperationResult = OperationsResults.UnsuccessfullyRemoveMessage
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully
                 };
             }
         }

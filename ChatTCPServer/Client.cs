@@ -1,5 +1,4 @@
-﻿using ChatTCPServer.Models;
-using ServerBusinessLogic.Enums;
+﻿using ServerBusinessLogic.Enums;
 using ServerBusinessLogic.HelperModels;
 using System;
 using System.Collections.Generic;
@@ -52,7 +51,8 @@ namespace ChatTCPServer
 
         private void ProcessClientOperation(ClientOperationMessage clientOperationMessage)
         {
-            string[] data = clientOperationMessage.Data.ToString().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            //json deserialize
+            string[] data = clientOperationMessage.JsonData.ToString().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             switch (clientOperationMessage.Operation)
             {
                 case ClientOperations.Authorization:
@@ -78,7 +78,7 @@ namespace ChatTCPServer
             return new ClientOperationMessage()
             {
                 Operation = (ClientOperations)Enum.Parse(typeof(ClientOperations), clientOperation[0]),
-                Data = clientOperation[1]
+                JsonData = clientOperation[1]
             };
         }
 
@@ -86,7 +86,7 @@ namespace ChatTCPServer
         {
             try
             {
-                Console.WriteLine("Отправлено сообщение - " + Id + " " + operationResultInfo.Info);
+                Console.WriteLine("Отправлено сообщение - " + Id + " " + operationResultInfo.ErrorInfo);
                 byte[] data = Encoding.UTF8.GetBytes(operationResultInfo.ToString());
                 networkStream_.Write(data, 0, data.Length);
             }
@@ -102,8 +102,6 @@ namespace ChatTCPServer
                 tcpClient_.Close();
             if (networkStream_ != null)
                 networkStream_.Close();
-
-            server_.BroadCastSend(userName_ + " disconnected", Id);
             server_.RemoveConnection(this);
         }
     }

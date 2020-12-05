@@ -10,14 +10,15 @@ namespace ServerBusinessLogic.HelperModels
     public class OperationResultInfo
     {
         public ListenerType ToListener { get; set; }
-        public string Info { get; set; }
+        public string ErrorInfo { get; set; }
         public OperationsResults OperationResult { get; set; }
         public string Data { get; set; }
 
+        //TODO : review 
         public override string ToString()
         {
             return Enum.GetName(typeof(ListenerType), ToListener) + "," 
-                + Enum.GetName(typeof(OperationsResults), OperationResult) + ":" + Info + "," + Data;
+                + Enum.GetName(typeof(OperationsResults), OperationResult) + ":" + ErrorInfo + "," + Data;
         }
     }
 }

@@ -65,22 +65,6 @@ namespace ChatTCPServer
 
         #region ClientInterface
 
-        public void BroadCastSend(string message, string id)
-        {
-            try
-            {
-                Console.WriteLine(message);
-                foreach (var client in clients_)
-                {
-                    //if(client.Id != id)
-                        //client.SendMessage(message);
-                }
-            }catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-
         public OperationResultInfo ClientAuthorization(string Login, string Password)
         {
             return mainLogic_.UserAuthorization(new UserReceiveModel() { Login = Login, Password = Password });
