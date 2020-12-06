@@ -1,17 +1,25 @@
-﻿using ServerBusinessLogic.Interfaces;
+﻿using ServerBusinessLogic.Interfaces.DataServices;
 using ServerBusinessLogic.ReceiveModels;
 using ServerBusinessLogic.ResponseModels;
 using ServerDatabaseSystem.DbModels;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ServerDatabaseSystem.Implementation
 {
+    /// <summary>
+    /// Service for working with Users database table 
+    /// </summary>
     public class UserLogic : IUserLogic
     {
+        /// <summary>
+        /// Creating a new user in Users database table
+        /// </summary>
+        /// <param name="userModel"><see cref="UserReceiveModel"/></param>
         public void Create(UserReceiveModel userModel)
         {
             using (DatabaseContext context = new DatabaseContext())
@@ -25,12 +33,17 @@ namespace ServerDatabaseSystem.Implementation
                     Name = userModel.Name,
                     SecondName = userModel.SecondName,
                     Login = userModel.Login,
-                    Password = userModel.Password
+                    Password = userModel.Password,
+                    Picture = new byte[10]
                 });
                 context.SaveChanges();
             }
         }
 
+        /// <summary>
+        /// Deleting a user from Users database table
+        /// </summary>
+        /// <param name="userModel"><see cref="UserReceiveModel"/></param>
         public void Delete(UserReceiveModel userModel)
         {
             using(DatabaseContext context = new DatabaseContext())
@@ -43,25 +56,44 @@ namespace ServerDatabaseSystem.Implementation
             }
         }
 
-        public List<UserResponseModel> Read(UserReceiveModel userModel)
+        /// <summary>
+        /// Get page of users by prefix of userName or without prefix
+        /// </summary>
+        /// <param name="userModel"><see cref="UserPaginationReceiveModel"/></param>
+        /// <returns><see cref="UserListResponseModel"/></returns>
+        public List<UserListResponseModel> Read(UserPaginationReceiveModel userModel)
         {
             using(DatabaseContext context = new DatabaseContext())
             {
-                return context.Users.Where(u => userModel == null 
-                || userModel.Login.Equals(u.Login) && userModel.Password.Equals(u.Password))
-                    .Select(u => new UserResponseModel()
+                return string.IsNullOrEmpty(userModel.SearchingUserName)
+                    ? context.Users
+                    .Skip(userModel.Page * 10)
+                    .Take(10)
+                    .Select(u => new UserListResponseModel()
                     {
                         Id = u.Id,
                         UserName = u.UserName,
-                        Name = u.Name,
-                        SecondName = u.SecondName,
-                        Login = u.Login,
-                        Password = u.Password
+                        Picture = u.Picture
+                    })
+                    .ToList()
+                    : context.Users
+                    .Where(u => u.UserName.StartsWith(userModel.SearchingUserName, true, CultureInfo.InvariantCulture))
+                    .Skip(userModel.Page * 10)
+                    .Take(10)
+                    .Select(u => new UserListResponseModel()
+                    {
+                        Id = u.Id,
+                        UserName = u.UserName,
+                        Picture = u.Picture
                     })
                     .ToList();
             }
         }
 
+        /// <summary>
+        /// Updating a user in Users database table
+        /// </summary>
+        /// <param name="userModel"><see cref="UserReceiveModel"/></param>
         public void Update(UserReceiveModel userModel)
         {
             using(DatabaseContext context = new DatabaseContext())
@@ -69,10 +101,16 @@ namespace ServerDatabaseSystem.Implementation
                 User usr = context.Users.FirstOrDefault(u => u.Login.Equals(userModel.Login));
                 if (usr == null)
                     throw new Exception("Такого пользователя нет в БД");
-                //пускай пока будет обновление логина, пароля и никнейма
+
                 usr.Login = userModel.Login;
                 usr.Password = userModel.Password;
                 usr.UserName = userModel.UserName;
+                usr.Picture = userModel.Picture;
+                usr.PhoneNumber = userModel.PhoneNumber;
+                usr.SecondName = userModel.SecondName;
+                usr.Country = userModel.Country;
+                usr.Gender = userModel.Gender;
+
                 context.SaveChanges();
             }
         }

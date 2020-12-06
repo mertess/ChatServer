@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ServerBusinessLogic.ResponseModels
 {
-    public class RelatChatUsersResponseModel
+    public class RelationChatUsersResponseModel
     {
         public int Id { get; set; }
         public int UserId { get; set; }

@@ -6,13 +6,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServerBusinessLogic.Interfaces
+namespace ServerBusinessLogic.Interfaces.DataServices
 {
     public interface IUserLogic
     {
         void Create(UserReceiveModel user);
+
         void Update(UserReceiveModel user);
+
         void Delete(UserReceiveModel user);
-        List<UserResponseModel> Read(UserReceiveModel user);
+
+        List<UserListResponseModel> Read(UserPaginationReceiveModel user);
     }
 }

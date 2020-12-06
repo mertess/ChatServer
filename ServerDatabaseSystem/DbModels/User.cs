@@ -32,7 +32,6 @@ namespace ServerDatabaseSystem.DbModels
 
         public string PhoneNumber { get; set; }
 
-        [Required]
         public Country Country { get; set; }
 
         public City City { get; set; }
@@ -40,7 +39,6 @@ namespace ServerDatabaseSystem.DbModels
         [Required]
         public byte[] Picture { get; set; }
 
-        [Required]
         public bool IsOnline { get; set; }
 
         [ForeignKey("UserId")]

@@ -1,4 +1,4 @@
-﻿using ServerBusinessLogic.Interfaces;
+﻿using ServerBusinessLogic.Interfaces.DataServices;
 using ServerDatabaseSystem.DbModels;
 using ServerBusinessLogic.ReceiveModels;
 using ServerBusinessLogic.ResponseModels;

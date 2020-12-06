@@ -1,4 +1,4 @@
-﻿using ServerBusinessLogic.Interfaces;
+﻿using ServerBusinessLogic.Interfaces.DataServices;
 using ServerBusinessLogic.TransmissionModels;
 using ServerBusinessLogic.Enums.Transmission;
 using System;
@@ -14,18 +14,15 @@ namespace ServerBusinessLogic.BusinessLogic
     {
         private readonly IChatLogic chatLogic_;
         private readonly IUserLogic userLogic_;
-        private readonly IRelatChatUserLogic relatChatUserLogic_;
         private readonly IMessageLogic messageLogic_;
 
         public MainLogic(
             IChatLogic chatLogic,
             IUserLogic userLogic,
-            IRelatChatUserLogic relatChatUserLogic,
             IMessageLogic messageLogic)
         {
             chatLogic_ = chatLogic;
             userLogic_ = userLogic;
-            relatChatUserLogic_ = relatChatUserLogic;
             messageLogic_ = messageLogic;
         }
 
@@ -179,53 +176,6 @@ namespace ServerBusinessLogic.BusinessLogic
                 };
             }
         }
-        #endregion
-        #region RelatChatUserOperations
-
-        public OperationResultInfo AddUserToChat(UserReceiveModel userModel, ChatReceiveModel chatModel)
-        {
-            try
-            {
-                relatChatUserLogic_.AddUserToChat(userModel, chatModel);
-                return new OperationResultInfo()
-                {
-                    ErrorInfo = string.Empty,
-                    OperationResult = OperationsResults.Successfully
-                };
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return new OperationResultInfo()
-                {
-                    ErrorInfo = ex.Message,
-                    OperationResult = OperationsResults.Unsuccessfully
-                };
-            }
-        }
-
-        public OperationResultInfo RemoveUserFromChat(UserReceiveModel userModel, ChatReceiveModel chatModel)
-        {
-            try
-            {
-                relatChatUserLogic_.RemoveUserFromChat(userModel, chatModel);
-                return new OperationResultInfo()
-                {
-                    ErrorInfo = string.Empty,
-                    OperationResult = OperationsResults.Successfully
-                };
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return new OperationResultInfo()
-                {
-                    ErrorInfo = ex.Message,
-                    OperationResult = OperationsResults.Unsuccessfully
-                };
-            }
-        }
-
         #endregion
         #region ServerDBOperations
 
