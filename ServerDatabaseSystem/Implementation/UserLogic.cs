@@ -1,6 +1,9 @@
-﻿using ServerBusinessLogic.Interfaces.DataServices;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using ServerBusinessLogic.Interfaces.DataServices;
 using ServerBusinessLogic.ReceiveModels;
+using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels;
+using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerDatabaseSystem.DbModels;
 using System;
 using System.Collections.Generic;
@@ -28,7 +31,6 @@ namespace ServerDatabaseSystem.Implementation
                     throw new Exception("Этот логин уже зарегистрирован!");
                 context.Users.Add(new User()
                 {
-                    Id = userModel.Id,
                     UserName = userModel.UserName,
                     Name = userModel.Name,
                     SecondName = userModel.SecondName,
@@ -57,11 +59,39 @@ namespace ServerDatabaseSystem.Implementation
         }
 
         /// <summary>
+        /// Get a user by Id or login and password
+        /// </summary>
+        /// <param name="user"><see cref="UserReceiveModel"/></param>
+        /// <returns><see cref="UserResponseModel"/></returns>
+        public UserResponseModel GetUser(UserReceiveModel user)
+        {
+            using(var context = new DatabaseContext())
+            {
+                var userDb = context.Users.FirstOrDefault(u => user.Id.HasValue && u.Id == user.Id.Value
+                || u.Login.Equals(user.Login) && u.Password.Equals(user.Password));
+
+                return userDb == null ? null : new UserResponseModel()
+                {
+                    Id = userDb.Id,
+                    UserName = userDb.UserName,
+                    Name = userDb.Name,
+                    SecondName = userDb.SecondName,
+                    Gender = userDb.Gender,
+                    Country = userDb.Country,
+                    City = userDb.City,
+                    IsOnline = userDb.IsOnline,
+                    PhoneNumber = userDb.PhoneNumber,
+                    Picture = userDb.Picture
+                };
+            }
+        }
+
+        /// <summary>
         /// Get page of users by prefix of userName or without prefix
         /// </summary>
         /// <param name="userModel"><see cref="UserPaginationReceiveModel"/></param>
         /// <returns><see cref="UserListResponseModel"/></returns>
-        public List<UserListResponseModel> Read(UserPaginationReceiveModel userModel)
+        public List<UserListResponseModel> ReadPage(UserPaginationReceiveModel userModel)
         {
             using(DatabaseContext context = new DatabaseContext())
             {

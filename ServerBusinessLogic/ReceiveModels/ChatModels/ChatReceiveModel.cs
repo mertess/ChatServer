@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ServerBusinessLogic.ResponseModels
+namespace ServerBusinessLogic.ReceiveModels.ChatModels
 {
-    public class ChatResponseModel
+    public class ChatReceiveModel
     {
         public int Id { get; set; }
 
@@ -12,8 +12,6 @@ namespace ServerBusinessLogic.ResponseModels
 
         public int CreatorId { get; set; }
 
-        public int CountUsers { get; set; }
-
-        public List<ChatUserResponseModel> ChatUsers { get; set; }
+        public List<ChatUserReceiveModel> ChatUsers { get; set; }
     }
 }

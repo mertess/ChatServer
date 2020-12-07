@@ -20,7 +20,6 @@ namespace ServerDatabaseSystem.DbModels
         [Required]
         public string UserMessage { get; set; }
 
-        [Required]
         public bool IsReaded { get; set; }
 
         [Required]

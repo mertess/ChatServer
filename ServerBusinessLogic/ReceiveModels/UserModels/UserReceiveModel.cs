@@ -3,11 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ServerBusinessLogic.ReceiveModels
+namespace ServerBusinessLogic.ReceiveModels.UserModels
 {
     public class UserReceiveModel
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         public string UserName { get; set; }
 

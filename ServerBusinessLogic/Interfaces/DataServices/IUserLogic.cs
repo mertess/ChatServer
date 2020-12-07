@@ -1,5 +1,7 @@
 ﻿using ServerBusinessLogic.ReceiveModels;
+using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels;
+using ServerBusinessLogic.ResponseModels.UserModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +18,8 @@ namespace ServerBusinessLogic.Interfaces.DataServices
 
         void Delete(UserReceiveModel user);
 
-        List<UserListResponseModel> Read(UserPaginationReceiveModel user);
+        List<UserListResponseModel> ReadPage(UserPaginationReceiveModel user);
+
+        UserResponseModel GetUser(UserReceiveModel user);
     }
 }

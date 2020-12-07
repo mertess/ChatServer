@@ -1,5 +1,8 @@
 ﻿using ServerBusinessLogic.ReceiveModels;
+using ServerBusinessLogic.ReceiveModels.ChatModels;
+using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels;
+using ServerBusinessLogic.ResponseModels.ChatModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;

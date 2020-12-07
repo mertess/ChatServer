@@ -13,6 +13,7 @@ using ServerDatabaseSystem.DbModels;
 using System.Runtime.CompilerServices;
 using ServerBusinessLogic.BusinessLogic;
 using ServerBusinessLogic.ReceiveModels;
+using ServerBusinessLogic.ReceiveModels.UserModels;
 
 namespace ChatTCPServer
 {
@@ -26,7 +27,7 @@ namespace ChatTCPServer
         {
             tcpListener_ = new TcpListener(IPAddress.Parse(Address), Port);
             clients_ = new List<Client>();
-            mainLogic_ = new MainLogic(new ChatLogic(), new UserLogic(), new RelatChatUserLogic(), new MessageLogic());
+            mainLogic_ = new MainLogic(new ChatLogic(), new UserLogic(), new MessageLogic());
         }
 
         public void Listening()

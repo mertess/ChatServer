@@ -7,6 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ServerBusinessLogic.ReceiveModels;
+using ServerBusinessLogic.ReceiveModels.UserModels;
+using ServerBusinessLogic.ReceiveModels.ChatModels;
+using ServerBusinessLogic.ReceiveModels.MessageModels;
 
 namespace ServerBusinessLogic.BusinessLogic
 {
@@ -55,7 +58,7 @@ namespace ServerBusinessLogic.BusinessLogic
 
         public OperationResultInfo UserAuthorization(UserReceiveModel userModel)
         {
-            var user = userLogic_.Read(userModel)?[0];
+            var user = userLogic_.GetUser(userModel);
             if (user != null)
             {
                 return new OperationResultInfo()

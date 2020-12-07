@@ -6,10 +6,10 @@ namespace ServerBusinessLogic.Interfaces.DataServices
 {
     public interface IFriendLogic
     {
-        void CreateFriend();
+        void Create();
 
-        void DeleteFriend();
+        void Delete();
 
-        void Read();
+        void ReadPage();
     }
 }

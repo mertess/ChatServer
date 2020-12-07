@@ -1,6 +1,5 @@
 ﻿using ServerBusinessLogic.Interfaces.DataServices;
 using ServerDatabaseSystem.DbModels;
-using ServerBusinessLogic.ReceiveModels;
 using ServerBusinessLogic.ResponseModels;
 using System;
 using System.Collections.Generic;
@@ -11,6 +10,9 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using ServerDatabaseSystem.Services;
+using ServerBusinessLogic.ReceiveModels.ChatModels;
+using ServerBusinessLogic.ReceiveModels.UserModels;
+using ServerBusinessLogic.ResponseModels.ChatModels;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -92,7 +94,10 @@ namespace ServerDatabaseSystem.Implementation
         {
             using(DatabaseContext context = new DatabaseContext())
             {
-                return context.Chats
+                return context.RelationChatUsers
+                    .Where(rcu => rcu.UserId == userPagination.UserId)
+                    .Include(rcu => rcu.Chat)
+                    .Select(rcu => rcu.Chat)
                     .Skip(userPagination.Page * 10)
                     .Take(10)
                     .Select(chat => new ChatResponseModel()
