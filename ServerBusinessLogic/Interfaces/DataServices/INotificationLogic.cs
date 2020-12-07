@@ -1,4 +1,7 @@
-﻿using System;
+﻿using ServerBusinessLogic.ReceiveModels.NotificationModels;
+using ServerBusinessLogic.ReceiveModels.UserModels;
+using ServerBusinessLogic.ResponseModels.NotificationModels;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,12 +9,12 @@ namespace ServerBusinessLogic.Interfaces.DataServices
 {
     public interface INotificationLogic
     {
-        void Create();
+        void Create(NotificationReceiveModel model);
 
-        void Update();
+        void Update(NotificationReceiveModel model);
 
-        void Delete();
+        void Delete(NotificationReceiveModel model);
 
-        void Read();
+        List<NotificationResponseModel> ReadPage(UserPaginationReceiveModel model);
     }
 }

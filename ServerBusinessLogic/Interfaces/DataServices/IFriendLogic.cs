@@ -1,4 +1,7 @@
-﻿using System;
+﻿using ServerBusinessLogic.ReceiveModels.FriendModels;
+using ServerBusinessLogic.ReceiveModels.UserModels;
+using ServerBusinessLogic.ResponseModels.UserModels;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,10 +9,10 @@ namespace ServerBusinessLogic.Interfaces.DataServices
 {
     public interface IFriendLogic
     {
-        void Create();
+        void Create(FriendReceiveModel model);
 
-        void Delete();
+        void Delete(FriendReceiveModel model);
 
-        void ReadPage();
+        List<UserListResponseModel> ReadPage(UserPaginationReceiveModel model);
     }
 }
