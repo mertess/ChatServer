@@ -12,13 +12,6 @@ namespace ServerBusinessLogic.TransmissionModels
         public ListenerType ToListener { get; set; }
         public string ErrorInfo { get; set; }
         public OperationsResults OperationResult { get; set; }
-        public string Data { get; set; }
-
-        //TODO : review 
-        public override string ToString()
-        {
-            return Enum.GetName(typeof(ListenerType), ToListener) + "," 
-                + Enum.GetName(typeof(OperationsResults), OperationResult) + ":" + ErrorInfo + "," + Data;
-        }
+        public object Data { get; set; }
     }
 }

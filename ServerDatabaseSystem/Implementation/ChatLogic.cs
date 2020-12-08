@@ -13,6 +13,7 @@ using ServerDatabaseSystem.Services;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
+using ServerBusinessLogic.ResponseModels.UserModels;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -82,6 +83,25 @@ namespace ServerDatabaseSystem.Implementation
                         throw;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Getting user from chat using chat Id
+        /// </summary>
+        /// <param name="chatId"></param>
+        /// <returns><see cref="UserListResponseModel"/></returns>
+        public List<UserListResponseModel> GetChatUsers(int chatId)
+        {
+            using (var context = new DatabaseContext())
+            {
+                return context.RelationChatUsers
+                    .Where(rcu => rcu.ChatId == chatId)
+                    .Select(rcu => new UserListResponseModel()
+                    {
+                        Id = rcu.UserId
+                    })
+                    .ToList();
             }
         }
 

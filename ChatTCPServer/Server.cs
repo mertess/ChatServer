@@ -19,15 +19,13 @@ namespace ChatTCPServer
 {
     public class Server
     {
-        private TcpListener tcpListener_;
-        private List<Client> clients_;
-        private MainLogic mainLogic_;
+        private readonly TcpListener tcpListener_;
+        public List<Client> ConnectedClients { get; private set; }
         
         public Server(string Address, int Port)
         {
             tcpListener_ = new TcpListener(IPAddress.Parse(Address), Port);
-            clients_ = new List<Client>();
-            mainLogic_ = new MainLogic(new ChatLogic(), new UserLogic(), new MessageLogic());
+            ConnectedClients = new List<Client>();
         }
 
         public void Listening()
@@ -55,7 +53,7 @@ namespace ChatTCPServer
 
         private void DisconnectServer()
         {
-            foreach (var client in clients_)
+            foreach (var client in ConnectedClients)
             {
                 //client.SendMessage("Server stopped");
                 client.Disconnect();
@@ -66,29 +64,9 @@ namespace ChatTCPServer
 
         #region ClientInterface
 
-        public OperationResultInfo ClientAuthorization(string Login, string Password)
-        {
-            return mainLogic_.UserAuthorization(new UserReceiveModel() { Login = Login, Password = Password });
-        }
+        public void AddConnection(Client client) => ConnectedClients.Add(client);
 
-        public OperationResultInfo ClientRegistration(
-            string Login,
-            string Name,
-            string SecondName,
-            string Password)
-        {
-            return mainLogic_.UserRegistration(new UserReceiveModel()
-            { 
-                Login = Login, 
-                Password = Password,
-                Name = Name,
-                SecondName = SecondName,
-                UserName = Login
-            });
-        }
-
-        public void AddConnection(Client client) => clients_.Add(client);
-        public void RemoveConnection(Client client) => clients_.Remove(client);
+        public void RemoveConnection(Client client) => ConnectedClients.Remove(client);
 
         #endregion
     }

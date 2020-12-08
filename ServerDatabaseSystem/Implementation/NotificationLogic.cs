@@ -6,6 +6,7 @@ using ServerBusinessLogic.ResponseModels.NotificationModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace ServerDatabaseSystem.Implementation
@@ -79,7 +80,9 @@ namespace ServerDatabaseSystem.Implementation
                     .Select(n => new NotificationResponseModel()
                     {
                         Id = n.Id,
-                        Message = n.Message
+                        Message = n.Message,
+                        FromUserName = context.Users.FirstOrDefault(u => u.Id == n.FromUserId).UserName,
+                        Picture = context.Users.FirstOrDefault(u => u.Id == n.FromUserId).Picture
                     })
                     .ToList();
             }

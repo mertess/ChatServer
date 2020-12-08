@@ -10,37 +10,47 @@ using ServerBusinessLogic.ReceiveModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ReceiveModels.MessageModels;
+using System.Runtime.CompilerServices;
+using ServerBusinessLogic.ResponseModels.MessageModels;
+using ServerBusinessLogic.ResponseModels.ChatModels;
+using ServerBusinessLogic.ResponseModels.UserModels;
 
 namespace ServerBusinessLogic.BusinessLogic
 {
     public class MainLogic
     {
-        private readonly IChatLogic chatLogic_;
-        private readonly IUserLogic userLogic_;
-        private readonly IMessageLogic messageLogic_;
+        private readonly IChatLogic _chatLogic;
+        private readonly IUserLogic _userLogic;
+        private readonly IMessageLogic _messageLogic;
+        private readonly IFriendLogic _friendLogic;
+        private readonly INotificationLogic _notificationLogic;
 
         public MainLogic(
             IChatLogic chatLogic,
             IUserLogic userLogic,
-            IMessageLogic messageLogic)
+            IMessageLogic messageLogic,
+            IFriendLogic friendLogic,
+            INotificationLogic notificationLogic)
         {
-            chatLogic_ = chatLogic;
-            userLogic_ = userLogic;
-            messageLogic_ = messageLogic;
+            _chatLogic = chatLogic;
+            _userLogic = userLogic;
+            _messageLogic = messageLogic;
+            _friendLogic = friendLogic;
+            _notificationLogic = notificationLogic;
         }
 
-        #region UserOperations
+        #region UserLogicOperations
         public OperationResultInfo UserRegistration(UserReceiveModel userModel)
         {
             try
             {
-                userLogic_.Create(userModel);
+                _userLogic.Create(userModel);
                 return new OperationResultInfo()
                 {
                     ToListener = ListenerType.RegistrationListener,
                     ErrorInfo = string.Empty,
                     OperationResult = OperationsResults.Successfully,
-                    Data = string.Empty
+                    Data = null
                 };
             }
             catch(Exception ex)
@@ -51,14 +61,14 @@ namespace ServerBusinessLogic.BusinessLogic
                     ToListener = ListenerType.RegistrationListener,
                     ErrorInfo = ex.Message,
                     OperationResult = OperationsResults.Unsuccessfully,
-                    Data = string.Empty
+                    Data = null
                 };
             }
         }
 
         public OperationResultInfo UserAuthorization(UserReceiveModel userModel)
         {
-            var user = userLogic_.GetUser(userModel);
+            var user = _userLogic.GetUser(userModel);
             if (user != null)
             {
                 return new OperationResultInfo()
@@ -66,7 +76,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     ToListener = ListenerType.AuthorizationListener,
                     ErrorInfo = string.Empty,
                     OperationResult = OperationsResults.Successfully,
-                    Data = string.Empty
+                    Data = null
                 };
             }
             return new OperationResultInfo()
@@ -74,7 +84,7 @@ namespace ServerBusinessLogic.BusinessLogic
                 ToListener = ListenerType.AuthorizationListener,
                 ErrorInfo = "Неправильный логин или пароль",
                 OperationResult = OperationsResults.Unsuccessfully,
-                Data = string.Empty
+                Data = null
             };
         }
 
@@ -82,7 +92,7 @@ namespace ServerBusinessLogic.BusinessLogic
         {
             try
             {
-                userLogic_.Update(userModel);
+                _userLogic.Update(userModel);
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
@@ -100,25 +110,15 @@ namespace ServerBusinessLogic.BusinessLogic
             }
         }
 
-        /* public OperationsResults UserProfileDelete(User user)
-         {
-             try
-             {
-
-             }
-             catch(Exception ex)
-             {
-                 Console.WriteLine(ex.Message);
-             }
-         }*/
+        
         #endregion
-        #region ChatOperations
+        #region ChatLogicOperations
 
         public OperationResultInfo CreateChat(ChatReceiveModel chatModel)
         {
             try
             {
-                chatLogic_.Create(chatModel);
+                _chatLogic.Create(chatModel);
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
@@ -140,7 +140,7 @@ namespace ServerBusinessLogic.BusinessLogic
         {
             try
             {
-                chatLogic_.Update(chatModel);
+                _chatLogic.Update(chatModel);
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
@@ -162,7 +162,7 @@ namespace ServerBusinessLogic.BusinessLogic
         {
             try
             {
-                chatLogic_.Delete(chatModel);
+                _chatLogic.Delete(chatModel);
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
@@ -179,15 +179,61 @@ namespace ServerBusinessLogic.BusinessLogic
                 };
             }
         }
-        #endregion
-        #region ServerDBOperations
 
-        public void AddMessage(MessageReceiveModel messageModel) => messageLogic_.AddMessage(messageModel);
+        public List<UserListResponseModel> GetChatUsers(int chatId)
+        {
+            try
+            {
+                return _chatLogic.GetChatUsers(chatId);
+            }
+            catch(Exception)
+            {
+                throw new Exception("Ошибка получения пользователей чата");
+            }
+        }
+
+        #endregion
+        #region MessageLogicOperations
+
+        public OperationResultInfo AddMessage(MessageReceiveModel messageModel)
+        {
+            try
+            {
+                _messageLogic.AddMessage(messageModel);
+
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully
+                };
+            }
+            catch(Exception ex)
+            {
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully
+                };
+            }
+        }
+
+        public MessageResponseModel GetMessage(MessageUserReceiveModel model)
+        {
+            try
+            {
+                return _messageLogic.ReadMessage(model);
+            }
+            catch(Exception)
+            {
+                throw;
+            }
+        }
+
         public OperationResultInfo DeleteMessage(MessageReceiveModel messageModel)
         {
             try
             {
-                messageLogic_.DeleteMessage(messageModel);
+                _messageLogic.DeleteMessage(messageModel);
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,

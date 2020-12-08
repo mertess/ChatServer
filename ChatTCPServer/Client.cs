@@ -1,5 +1,9 @@
-﻿using ServerBusinessLogic.Enums.Transmission;
+﻿using ChatTCPServer.Services;
+using ServerBusinessLogic.BusinessLogic;
+using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.TransmissionModels;
+using ServerDatabaseSystem.DbModels;
+using ServerDatabaseSystem.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,20 +17,33 @@ namespace ChatTCPServer
 {
     public class Client
     {
-        private TcpClient tcpClient_;
-        private Server server_;
-        private NetworkStream networkStream_;
-        private string userName_;
-        public string Id { private set; get; }
+        private readonly TcpClient _tcpClient;
+        private readonly Server _server;
+        private readonly NetworkStream _networkStream;
+        private readonly RequestHandler _requestHandler;
+        public int Id { set; get; }
 
         public Client(TcpClient tcpClient, Server server)
         {
-            tcpClient_ = tcpClient;
-            server_ = server;
-            networkStream_ = tcpClient.GetStream();
-            Id = Guid.NewGuid().ToString();
-            server_.AddConnection(this);
-            Console.WriteLine("new Client = " + Id);
+            //wtf
+            _requestHandler = new RequestHandler(
+                new Serializer(),
+                this, 
+                new MainLogic(
+                    new ChatLogic(),
+                    new UserLogic(),
+                    new MessageLogic(),
+                    new FriendLogic(),
+                    new NotificationLogic()
+                ),
+                _server.ConnectedClients);
+
+            _tcpClient = tcpClient;
+            _server = server;
+            _networkStream = tcpClient.GetStream();
+            //Id = Guid.NewGuid().ToString();
+            _server.AddConnection(this);
+            Console.WriteLine("client connected");
         }
 
         //обработка подключения пользователя
@@ -41,7 +58,7 @@ namespace ChatTCPServer
             }
             catch(Exception e)
             {
-                Console.WriteLine(userName_ + " " + e.Message);
+                Console.WriteLine(Id + " " + e.Message);
             }
             finally
             {
@@ -49,20 +66,7 @@ namespace ChatTCPServer
             }
         }
 
-        private void ProcessClientOperation(ClientOperationMessage clientOperationMessage)
-        {
-            //json deserialize
-            string[] data = clientOperationMessage.JsonData.ToString().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            switch (clientOperationMessage.Operation)
-            {
-                case ClientOperations.Authorization:
-                    SendMessage(server_.ClientAuthorization(data[0], data[1]));
-                    return;
-                case ClientOperations.Registration:
-                    SendMessage(server_.ClientRegistration(data[0], data[1], data[2], data[3]));
-                    return;
-            }
-        }
+        private void ProcessClientOperation(ClientOperationMessage clientOperationMessage) => _requestHandler.HandleRequest(clientOperationMessage);
 
         private ClientOperationMessage GetMessage()
         {
@@ -70,9 +74,9 @@ namespace ChatTCPServer
             StringBuilder stringBuilder = new StringBuilder();
             do
             {
-                int countBytes = networkStream_.Read(data, 0, 256);
+                int countBytes = _networkStream.Read(data, 0, 256);
                 stringBuilder.Append(Encoding.UTF8.GetString(data, 0, countBytes));
-            } while (networkStream_.DataAvailable);
+            } while (_networkStream.DataAvailable);
             Console.WriteLine("Получено сообщение - " + Id + " " + stringBuilder.ToString());
             var clientOperation = stringBuilder.ToString().Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
             return new ClientOperationMessage()
@@ -82,27 +86,27 @@ namespace ChatTCPServer
             };
         }
 
-        public void SendMessage(OperationResultInfo operationResultInfo)
+        public void SendMessage(string message)
         {
             try
             {
-                Console.WriteLine("Отправлено сообщение - " + Id + " " + operationResultInfo.ErrorInfo);
-                byte[] data = Encoding.UTF8.GetBytes(operationResultInfo.ToString());
-                networkStream_.Write(data, 0, data.Length);
+                Console.WriteLine("Отправлено сообщение - " + Id + " " + message);
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                _networkStream.Write(data, 0, data.Length);
             }
             catch(Exception ex)
             {
-                Console.WriteLine(userName_ + ": " + ex.Message);
+                Console.WriteLine(Id + ": " + ex.Message);
             }
         }
 
         public void Disconnect()
         {
-            if (tcpClient_ != null)
-                tcpClient_.Close();
-            if (networkStream_ != null)
-                networkStream_.Close();
-            server_.RemoveConnection(this);
+            if (_tcpClient != null)
+                _tcpClient.Close();
+            if (_networkStream != null)
+                _networkStream.Close();
+            _server.RemoveConnection(this);
         }
     }
 }

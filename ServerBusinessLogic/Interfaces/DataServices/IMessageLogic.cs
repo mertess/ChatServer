@@ -20,5 +20,7 @@ namespace ServerBusinessLogic.Interfaces.DataServices
         void Update(MessageReceiveModel message);
 
         List<MessageResponseModel> ReadPage(ChatPaginationReceiveModel chat);
+
+        MessageResponseModel ReadMessage(MessageUserReceiveModel model);
     }
 }

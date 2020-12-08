@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ServerBusinessLogic.ReceiveModels.MessageModels;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ResponseModels.MessageModels;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -79,6 +80,29 @@ namespace ServerDatabaseSystem.Implementation
                         UserId = m.FromUserId
                     })
                     .ToList();
+            }
+        }
+
+        /// <summary>
+        /// Reading one message from Messages database table by chat Id and user Id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns><see cref="MessageResponseModel"/></returns>
+        public MessageResponseModel ReadMessage(MessageUserReceiveModel model)
+        {
+            using (var context = new DatabaseContext())
+            {
+                var message = context.Messages.FirstOrDefault(m => m.FromUserId == model.UserId && m.ChatId == model.ChatId);
+                if (message == null)
+                    throw new Exception("Сообщение не найдено!");
+
+                return new MessageResponseModel()
+                {
+                    Id = message.Id,
+                    UserMassage = message.UserMessage,
+                    UserId = message.FromUserId,
+                    ChatId = message.ChatId
+                };
             }
         }
 

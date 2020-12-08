@@ -164,7 +164,10 @@
     <Compile Include="Client.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\RequestHandler.cs" />
+    <Compile Include="Services\Serializer.cs" />
     <Compile Include="Server.cs" />
+    <Compile Include="Services\ClientsSynchronizer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
