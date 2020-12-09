@@ -10,12 +10,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatTCPServer", "ChatTCPSer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatTCPTestClient", "ChatTCPTestClient\ChatTCPTestClient.csproj", "{B2CD9BAD-564A-470A-A763-1FC686275C47}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerBusinessLogic", "ServerBusinessLogic\ServerBusinessLogic.csproj", "{91E4DE1C-BADD-4E20-A77E-F45460DBA4E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerBusinessLogic", "ServerBusinessLogic\ServerBusinessLogic.csproj", "{91E4DE1C-BADD-4E20-A77E-F45460DBA4E2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerDatabaseSystem", "ServerDatabaseSystem\ServerDatabaseSystem.csproj", "{6BAC6C29-A52D-4C45-9757-B6A4D33FBB2F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{91E4DE1C-BADD-4E20-A77E-F45460DBA4E2} = {91E4DE1C-BADD-4E20-A77E-F45460DBA4E2}
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerDatabaseLibrary", "ServerDatabaseLibrary\ServerDatabaseLibrary.csproj", "{8EDD07DB-6A27-4EEB-BBFA-264FBE97B7AA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +32,10 @@ Global
 		{91E4DE1C-BADD-4E20-A77E-F45460DBA4E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91E4DE1C-BADD-4E20-A77E-F45460DBA4E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91E4DE1C-BADD-4E20-A77E-F45460DBA4E2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6BAC6C29-A52D-4C45-9757-B6A4D33FBB2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6BAC6C29-A52D-4C45-9757-B6A4D33FBB2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6BAC6C29-A52D-4C45-9757-B6A4D33FBB2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6BAC6C29-A52D-4C45-9757-B6A4D33FBB2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EDD07DB-6A27-4EEB-BBFA-264FBE97B7AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EDD07DB-6A27-4EEB-BBFA-264FBE97B7AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EDD07DB-6A27-4EEB-BBFA-264FBE97B7AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EDD07DB-6A27-4EEB-BBFA-264FBE97B7AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

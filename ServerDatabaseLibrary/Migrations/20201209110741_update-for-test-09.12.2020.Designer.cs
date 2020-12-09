@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServerDatabaseSystem;
 
 namespace ServerDatabaseSystem.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20201209110741_update-for-test-09.12.2020")]
+    partial class updatefortest09122020
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -157,13 +159,13 @@ namespace ServerDatabaseSystem.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int>("City")
+                    b.Property<int?>("City")
                         .HasColumnType("int");
 
-                    b.Property<int>("Country")
+                    b.Property<int?>("Country")
                         .HasColumnType("int");
 
-                    b.Property<int>("Gender")
+                    b.Property<int?>("Gender")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsOnline")
@@ -185,7 +187,6 @@ namespace ServerDatabaseSystem.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Picture")
-                        .IsRequired()
                         .HasColumnType("varbinary(max)");
 
                     b.Property<string>("SecondName")

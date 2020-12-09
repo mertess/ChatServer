@@ -28,15 +28,15 @@ namespace ServerDatabaseSystem.DbModels
         [Required]
         public string SecondName { get; set; }
         
-        public Gender Gender { get; set; }
+        public Gender? Gender { get; set; }
 
         public string PhoneNumber { get; set; }
 
-        public Country Country { get; set; }
+        public Country? Country { get; set; }
 
-        public City City { get; set; }
+        public City? City { get; set; }
 
-        [Required]
+        //[Required]
         public byte[] Picture { get; set; }
 
         public bool IsOnline { get; set; }

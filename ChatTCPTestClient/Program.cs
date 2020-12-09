@@ -1,4 +1,10 @@
-﻿using System;
+﻿using ChatTCPServer.Services;
+using ServerBusinessLogic.Enums.Transmission;
+using ServerBusinessLogic.ReceiveModels.UserModels;
+using ServerBusinessLogic.ResponseModels.MessageModels;
+using ServerBusinessLogic.ResponseModels.UserModels;
+using ServerBusinessLogic.TransmissionModels;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -18,6 +24,8 @@ namespace ChatTCPTestClient
         static TcpClient tcpClient;
         static NetworkStream networkStream;
         static string userName;
+        static Serializer serializer = new Serializer();
+        static DataManager DataManager = new DataManager();
         static void Main(string[] args)
         {
             try
@@ -26,16 +34,28 @@ namespace ChatTCPTestClient
                 tcpClient.Connect(IPAddress.Parse(serverIp), serverPort);
                 networkStream = tcpClient.GetStream();
 
+                DataManager.AddListener(ListenerType.AuthorizationListener, AuthorizationListener);
+                DataManager.AddListener(ListenerType.RegistrationListener, RegistrationListener);
+                DataManager.AddListener(ListenerType.ChatMessagesListener, MessageListListener);
+
                 Task.Run(() => RecieveMessages());
 
-                Console.Write("Enter your nickname:");
-                userName = Console.ReadLine();
-                SendMessage(userName);
-                Console.WriteLine("Enter the messages:");
+                SendMessage(new ClientOperationMessage() 
+                { 
+                    Operation = ClientOperations.Registration, 
+                    Data = new UserReceiveModel()
+                    {
+                        Login = "mertess1",
+                        Password = "123",
+                        UserName = "mertess1",
+                        Name = "mertess1",
+                        SecondName = "mertess1"
+                    }
+                });
+
                 while (true)
                 {
-                    var message = Console.ReadLine();
-                    SendMessage(message);
+
                 }
             }
             catch (Exception ex)
@@ -48,27 +68,61 @@ namespace ChatTCPTestClient
             }
         }
 
-        static void SendMessage(string message)
+        static void SendMessage(ClientOperationMessage clientOperationMessage)
         {
-            var finalMessage = userName + ": " + message;
-            byte[] data = Encoding.UTF8.GetBytes(finalMessage);
+            byte[] data = Encoding.UTF8.GetBytes(serializer.Serialize(clientOperationMessage));
+            Console.WriteLine("data send length = " + data.Length);
             networkStream.Write(data, 0, data.Length);
         }
 
         static void RecieveMessages()
         {
-            byte[] data = new byte[64];
+            byte[] data = new byte[256];
             while (true)
             {
                 StringBuilder stringBuilder = new StringBuilder();
                 do
                 {
-                    networkStream.Read(data, 0, 64);
-                    stringBuilder.Append(Encoding.UTF8.GetString(data, 0, 64));
+                    networkStream.Read(data, 0, 256);
+                    stringBuilder.Append(Encoding.UTF8.GetString(data, 0, 256));
                 } while (networkStream.DataAvailable);
 
-                Console.WriteLine(stringBuilder.ToString());
+                try
+                {
+                    var obj = serializer.Deserialize<OperationResultInfo>(stringBuilder.ToString());
+                    DataManager.HandleData(obj.ToListener, obj);
+                }
+                catch(Exception){ }
             }
+        }
+
+        static void AuthorizationListener(OperationResultInfo operationResultInfo)
+        {
+            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
+            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
+            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+            var data = operationResultInfo.Data as UserResponseModel;
+            Console.WriteLine("UserId = " + data.Id);
+            Console.WriteLine("UserName = " + data.UserName);
+        }
+
+        static void RegistrationListener(OperationResultInfo operationResultInfo)
+        {
+            Console.WriteLine("Reg Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
+            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
+            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+        }
+
+        static void MessageListListener(OperationResultInfo operationResultInfo)
+        {
+            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
+            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
+            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+            var data = operationResultInfo.Data as MessageResponseModel;
+            Console.WriteLine("MessageId = " + data.Id);
+            Console.WriteLine("UserId = " + data.UserId);
+            Console.WriteLine("ChatId = " + data.ChatId);
+            Console.WriteLine("Message = " + data.UserMassage);
         }
 
         static void Disconnect()

@@ -17,6 +17,7 @@ namespace ServerDatabaseSystem
                 optionsBuilder.UseSqlServer(@"Data Source=DESKTOP-BIJFUOL;
                 Initial Catalog=ChatServerDatabase;Integrated Security=True;MultipleActiveResultSets=True;");
             }
+            //optionsBuilder.EnableSensitiveDataLogging();
             base.OnConfiguring(optionsBuilder);
         }
 

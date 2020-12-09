@@ -52,12 +52,14 @@ namespace ChatTCPServer.Services
         /// and synchronizing another users chats
         /// </summary>
         /// <param name="clientOperationMessage"></param>
-        public void HandleRequest(ClientOperationMessage clientOperationMessage)
+        public void HandleRequest(string messageJson)
         {
-            switch(clientOperationMessage.Operation)
+            var message = _serializer.Deserialize<ClientOperationMessage>(messageJson);
+
+            switch(message.Operation)
             {
                 case ClientOperations.Authorization:
-                    var userReceiveModelAuthorization = _serializer.Deserialize<UserReceiveModel>(clientOperationMessage.JsonData);
+                    var userReceiveModelAuthorization = message.Data as UserReceiveModel;
                     var authorizationResult = _mainLogic.UserAuthorization(userReceiveModelAuthorization);
 
                     if(authorizationResult.OperationResult == OperationsResults.Successfully)
@@ -68,17 +70,20 @@ namespace ChatTCPServer.Services
                     var authorizationResultJson = _serializer.Serialize(authorizationResult);
                     _client.SendMessage(authorizationResultJson);
                     break;
+
                 case ClientOperations.Registration:
-                    var userReceiveModelRegistration = _serializer.Deserialize<UserReceiveModel>(clientOperationMessage.JsonData);
+                    var userReceiveModelRegistration = message.Data as UserReceiveModel;
                     var registrationResult = _serializer.Serialize(_mainLogic.UserRegistration(userReceiveModelRegistration));
                     _client.SendMessage(registrationResult);
                     break;
+
                 case ClientOperations.SendMessage:
-                    var messageReceiveModelSend = _serializer.Deserialize<MessageReceiveModel>(clientOperationMessage.JsonData);
+                    var messageReceiveModelSend = message.Data as MessageReceiveModel;
                     var messageSendResult = _serializer.Serialize(_mainLogic.AddMessage(messageReceiveModelSend));
                     _client.SendMessage(messageSendResult);
                     _clienstSynchronizer.SynchronizeChats(messageReceiveModelSend);
                     break;
+
                 default:
                     throw new Exception("Незарегистрированная операция");
             }

@@ -76,7 +76,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     ToListener = ListenerType.AuthorizationListener,
                     ErrorInfo = string.Empty,
                     OperationResult = OperationsResults.Successfully,
-                    Data = null
+                    Data = user
                 };
             }
             return new OperationResultInfo()
@@ -84,7 +84,7 @@ namespace ServerBusinessLogic.BusinessLogic
                 ToListener = ListenerType.AuthorizationListener,
                 ErrorInfo = "Неправильный логин или пароль",
                 OperationResult = OperationsResults.Unsuccessfully,
-                Data = null
+                Data = user
             };
         }
 

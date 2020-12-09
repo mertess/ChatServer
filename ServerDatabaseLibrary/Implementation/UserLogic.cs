@@ -35,8 +35,8 @@ namespace ServerDatabaseSystem.Implementation
                     Name = userModel.Name,
                     SecondName = userModel.SecondName,
                     Login = userModel.Login,
-                    Password = userModel.Password,
-                    Picture = new byte[10]
+                    Password = userModel.Password
+                    //Picture = new byte[10]
                 });
                 context.SaveChanges();
             }
@@ -76,9 +76,9 @@ namespace ServerDatabaseSystem.Implementation
                     UserName = userDb.UserName,
                     Name = userDb.Name,
                     SecondName = userDb.SecondName,
-                    Gender = userDb.Gender,
-                    Country = userDb.Country,
-                    City = userDb.City,
+                    Gender = userDb.Gender.Value,
+                    Country = userDb.Country.Value,
+                    City = userDb.City.Value,
                     IsOnline = userDb.IsOnline,
                     PhoneNumber = userDb.PhoneNumber,
                     Picture = userDb.Picture

@@ -10,6 +10,6 @@ namespace ServerBusinessLogic.TransmissionModels
     public class ClientOperationMessage
     {
         public ClientOperations Operation { get; set; }
-        public string JsonData { get; set; }
+        public object Data { get; set; }
     }
 }

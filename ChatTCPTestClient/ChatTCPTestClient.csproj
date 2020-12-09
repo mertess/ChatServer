@@ -43,11 +43,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ChatTCPServer\ChatTCPServer.csproj">
+      <Project>{8F1B4E69-447E-46DF-9DDB-7EB88F96C01D}</Project>
+      <Name>ChatTCPServer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServerBusinessLogic\ServerBusinessLogic.csproj">
+      <Project>{91e4de1c-badd-4e20-a77e-f45460dba4e2}</Project>
+      <Name>ServerBusinessLogic</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

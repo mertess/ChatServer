@@ -36,7 +36,7 @@ namespace ChatTCPServer
                     new FriendLogic(),
                     new NotificationLogic()
                 ),
-                _server.ConnectedClients);
+                server.ConnectedClients);
 
             _tcpClient = tcpClient;
             _server = server;
@@ -66,9 +66,9 @@ namespace ChatTCPServer
             }
         }
 
-        private void ProcessClientOperation(ClientOperationMessage clientOperationMessage) => _requestHandler.HandleRequest(clientOperationMessage);
+        private void ProcessClientOperation(string messageJson) => _requestHandler.HandleRequest(messageJson);
 
-        private ClientOperationMessage GetMessage()
+        private string GetMessage()
         {
             byte[] data = new byte[256];
             StringBuilder stringBuilder = new StringBuilder();
@@ -78,12 +78,8 @@ namespace ChatTCPServer
                 stringBuilder.Append(Encoding.UTF8.GetString(data, 0, countBytes));
             } while (_networkStream.DataAvailable);
             Console.WriteLine("Получено сообщение - " + Id + " " + stringBuilder.ToString());
-            var clientOperation = stringBuilder.ToString().Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
-            return new ClientOperationMessage()
-            {
-                Operation = (ClientOperations)Enum.Parse(typeof(ClientOperations), clientOperation[0]),
-                JsonData = clientOperation[1]
-            };
+
+            return stringBuilder.ToString();
         }
 
         public void SendMessage(string message)
