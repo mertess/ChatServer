@@ -48,10 +48,11 @@ namespace ChatTCPServer.Services
         /// </summary>
         public void SynchronizeChats(MessageReceiveModel message)
         {
-            var messageFromDb = _mainLogic.GetMessage(new MessageUserReceiveModel() { UserId = message.FromUserId, ChatId = message.ChatId });
+            var messageFromDb = _mainLogic.GetMessage(new MessageUserReceiveModel() { UserId = message.FromUserId, ChatId = message.ChatId, Message = message.UserMassage });
             var chatUsers = _mainLogic.GetChatUsers(message.ChatId);
             var onlineUsers = _connectedClients.Where(ou => chatUsers.FirstOrDefault(u => u.Id == ou.Id) != null && ou.Id != message.FromUserId);
-
+            
+            var count = onlineUsers.Count();
             Parallel.ForEach(onlineUsers, (ou) => 
             {
                 var responseJson = _serializer.Serialize(new OperationResultInfo()
@@ -59,7 +60,7 @@ namespace ChatTCPServer.Services
                     ErrorInfo = string.Empty,
                     ToListener = ListenerType.ChatMessagesListener,
                     OperationResult = OperationsResults.Successfully,
-                    Data = messageFromDb
+                    JsonData = _serializer.Serialize(messageFromDb)
                 });
                 ou.SendMessage(responseJson);
             });

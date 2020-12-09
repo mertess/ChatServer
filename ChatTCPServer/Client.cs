@@ -34,7 +34,8 @@ namespace ChatTCPServer
                     new UserLogic(),
                     new MessageLogic(),
                     new FriendLogic(),
-                    new NotificationLogic()
+                    new NotificationLogic(),
+                    new Serializer()
                 ),
                 server.ConnectedClients);
 

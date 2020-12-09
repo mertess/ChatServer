@@ -59,26 +59,28 @@ namespace ChatTCPServer.Services
             switch(message.Operation)
             {
                 case ClientOperations.Authorization:
-                    var userReceiveModelAuthorization = message.Data as UserReceiveModel;
+                    var userReceiveModelAuthorization = _serializer.Deserialize<UserReceiveModel>(message.JsonData);
                     var authorizationResult = _mainLogic.UserAuthorization(userReceiveModelAuthorization);
 
+                    //TODO : review deserialization
                     if(authorizationResult.OperationResult == OperationsResults.Successfully)
                     {
-                        _client.Id = (authorizationResult.Data as UserResponseModel).Id;
+                        _client.Id = _serializer.Deserialize<UserResponseModel>(authorizationResult.JsonData).Id;
                         Console.WriteLine(_client.Id + " Пользователь успешно авторизировался");
                     }
+
                     var authorizationResultJson = _serializer.Serialize(authorizationResult);
                     _client.SendMessage(authorizationResultJson);
                     break;
 
                 case ClientOperations.Registration:
-                    var userReceiveModelRegistration = message.Data as UserReceiveModel;
+                    var userReceiveModelRegistration = _serializer.Deserialize<UserReceiveModel>(message.JsonData);
                     var registrationResult = _serializer.Serialize(_mainLogic.UserRegistration(userReceiveModelRegistration));
                     _client.SendMessage(registrationResult);
                     break;
 
                 case ClientOperations.SendMessage:
-                    var messageReceiveModelSend = message.Data as MessageReceiveModel;
+                    var messageReceiveModelSend = _serializer.Deserialize<MessageReceiveModel>(message.JsonData);
                     var messageSendResult = _serializer.Serialize(_mainLogic.AddMessage(messageReceiveModelSend));
                     _client.SendMessage(messageSendResult);
                     _clienstSynchronizer.SynchronizeChats(messageReceiveModelSend);

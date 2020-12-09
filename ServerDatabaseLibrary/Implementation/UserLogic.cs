@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -70,15 +71,18 @@ namespace ServerDatabaseSystem.Implementation
                 var userDb = context.Users.FirstOrDefault(u => user.Id.HasValue && u.Id == user.Id.Value
                 || u.Login.Equals(user.Login) && u.Password.Equals(user.Password));
 
-                return userDb == null ? null : new UserResponseModel()
+                if (userDb == null)
+                    throw new Exception("Пользователь не найден, возможно неправильный логин или пароль");
+
+                return new UserResponseModel()
                 {
                     Id = userDb.Id,
                     UserName = userDb.UserName,
                     Name = userDb.Name,
                     SecondName = userDb.SecondName,
-                    Gender = userDb.Gender.Value,
-                    Country = userDb.Country.Value,
-                    City = userDb.City.Value,
+                    Gender = userDb.Gender ?? default,
+                    Country = userDb.Country ?? default,
+                    City = userDb.City ?? default,
                     IsOnline = userDb.IsOnline,
                     PhoneNumber = userDb.PhoneNumber,
                     Picture = userDb.Picture

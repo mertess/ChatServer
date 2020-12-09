@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using ServerBusinessLogic.ResponseModels.MessageModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
+using ServerBusinessLogic.Interfaces;
 
 namespace ServerBusinessLogic.BusinessLogic
 {
@@ -24,19 +25,22 @@ namespace ServerBusinessLogic.BusinessLogic
         private readonly IMessageLogic _messageLogic;
         private readonly IFriendLogic _friendLogic;
         private readonly INotificationLogic _notificationLogic;
+        private readonly ISerializer _serializer;
 
         public MainLogic(
             IChatLogic chatLogic,
             IUserLogic userLogic,
             IMessageLogic messageLogic,
             IFriendLogic friendLogic,
-            INotificationLogic notificationLogic)
+            INotificationLogic notificationLogic,
+            ISerializer serializer)
         {
             _chatLogic = chatLogic;
             _userLogic = userLogic;
             _messageLogic = messageLogic;
             _friendLogic = friendLogic;
             _notificationLogic = notificationLogic;
+            _serializer = serializer;
         }
 
         #region UserLogicOperations
@@ -50,7 +54,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     ToListener = ListenerType.RegistrationListener,
                     ErrorInfo = string.Empty,
                     OperationResult = OperationsResults.Successfully,
-                    Data = null
+                    JsonData = null
                 };
             }
             catch(Exception ex)
@@ -61,31 +65,34 @@ namespace ServerBusinessLogic.BusinessLogic
                     ToListener = ListenerType.RegistrationListener,
                     ErrorInfo = ex.Message,
                     OperationResult = OperationsResults.Unsuccessfully,
-                    Data = null
+                    JsonData = null
                 };
             }
         }
 
         public OperationResultInfo UserAuthorization(UserReceiveModel userModel)
         {
-            var user = _userLogic.GetUser(userModel);
-            if (user != null)
+            try
             {
+                var user = _userLogic.GetUser(userModel);
+
                 return new OperationResultInfo()
                 {
                     ToListener = ListenerType.AuthorizationListener,
                     ErrorInfo = string.Empty,
                     OperationResult = OperationsResults.Successfully,
-                    Data = user
+                    JsonData = _serializer.Serialize(user)
                 };
             }
-            return new OperationResultInfo()
+            catch(Exception ex)
             {
-                ToListener = ListenerType.AuthorizationListener,
-                ErrorInfo = "Неправильный логин или пароль",
-                OperationResult = OperationsResults.Unsuccessfully,
-                Data = user
-            };
+                return new OperationResultInfo()
+                {
+                    ToListener = ListenerType.AuthorizationListener,
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully
+                };
+            }
         }
 
         public OperationResultInfo UserProfileUpdate(UserReceiveModel userModel)

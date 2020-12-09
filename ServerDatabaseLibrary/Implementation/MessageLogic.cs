@@ -92,7 +92,7 @@ namespace ServerDatabaseSystem.Implementation
         {
             using (var context = new DatabaseContext())
             {
-                var message = context.Messages.FirstOrDefault(m => m.FromUserId == model.UserId && m.ChatId == model.ChatId);
+                var message = context.Messages.FirstOrDefault(m => m.FromUserId == model.UserId && m.ChatId == model.ChatId && m.UserMessage.Equals(model.Message));
                 if (message == null)
                     throw new Exception("Сообщение не найдено!");
 

@@ -9,5 +9,7 @@ namespace ServerBusinessLogic.ReceiveModels.MessageModels
         public int UserId { get; set; }
 
         public int ChatId { get; set; }
+
+        public string Message { get; set; }
     }
 }
