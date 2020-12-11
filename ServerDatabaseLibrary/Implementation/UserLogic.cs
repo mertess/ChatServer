@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -101,6 +102,7 @@ namespace ServerDatabaseSystem.Implementation
             {
                 return string.IsNullOrEmpty(userModel.SearchingUserName)
                     ? context.Users
+                    .Where(u => u.Id != userModel.UserId)
                     .Skip(userModel.Page * 10)
                     .Take(10)
                     .Select(u => new UserListResponseModel()
@@ -111,7 +113,7 @@ namespace ServerDatabaseSystem.Implementation
                     })
                     .ToList()
                     : context.Users
-                    .Where(u => u.UserName.StartsWith(userModel.SearchingUserName, true, CultureInfo.InvariantCulture))
+                    .Where(u => u.Id != userModel.UserId && u.UserName.StartsWith(userModel.SearchingUserName, true, CultureInfo.InvariantCulture))
                     .Skip(userModel.Page * 10)
                     .Take(10)
                     .Select(u => new UserListResponseModel()

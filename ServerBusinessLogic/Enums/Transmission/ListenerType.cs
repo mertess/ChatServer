@@ -10,7 +10,11 @@ namespace ServerBusinessLogic.Enums.Transmission
     {
         AuthorizationListener,
         RegistrationListener,
+
         ChatListListener,
-        ChatMessagesListener
+        ChatListDeleteListener,
+        ChatsMessagesListener,
+
+        UserListListener
     }
 }

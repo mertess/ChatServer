@@ -35,13 +35,14 @@ namespace ChatTCPTestClient
             try
             {
                 Console.OutputEncoding = Encoding.Unicode;
+                Console.InputEncoding = Encoding.Unicode;
                 tcpClient = new TcpClient();
                 tcpClient.Connect(IPAddress.Parse(serverIp), serverPort);
                 networkStream = tcpClient.GetStream();
 
                 DataManager.AddListener(ListenerType.AuthorizationListener, AuthorizationListener);
                 DataManager.AddListener(ListenerType.RegistrationListener, RegistrationListener);
-                DataManager.AddListener(ListenerType.ChatMessagesListener, MessageListListener);
+                DataManager.AddListener(ListenerType.ChatsMessagesListener, MessageListListener);
 
                 Task.Run(() => RecieveMessages());
 
@@ -142,7 +143,7 @@ namespace ChatTCPTestClient
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
-            user = serializer.Deserialize<UserResponseModel>(operationResultInfo.JsonData);
+            user = serializer.Deserialize<UserResponseModel>(operationResultInfo.JsonData as string);
             Console.WriteLine("UserId = " + user?.Id);
             Console.WriteLine("UserName = " + user?.UserName);
         }
@@ -159,7 +160,7 @@ namespace ChatTCPTestClient
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
-            var data = serializer.Deserialize<MessageResponseModel>(operationResultInfo.JsonData);
+            var data = serializer.Deserialize<MessageResponseModel>(operationResultInfo.JsonData as string);
             Console.WriteLine("MessageId = " + data.Id);
             Console.WriteLine("UserId = " + data.UserId);
             Console.WriteLine("ChatId = " + data.ChatId);

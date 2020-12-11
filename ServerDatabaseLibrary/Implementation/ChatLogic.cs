@@ -14,6 +14,7 @@ using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -33,8 +34,9 @@ namespace ServerDatabaseSystem.Implementation
         /// Creating a new chat in Database and binding users with that chat  
         /// </summary>
         /// <param name="chatModel"><see cref="ChatReceiveModel"/></param>
-        public void Create(ChatReceiveModel chatModel)
+        public ChatResponseModel Create(ChatReceiveModel chatModel)
         {
+            //TODO : review
             using(DatabaseContext context = new DatabaseContext())
             { 
                 if (context.Chats.FirstOrDefault(c => c.ChatName.Equals(chatModel.ChatName)) != null)
@@ -43,7 +45,7 @@ namespace ServerDatabaseSystem.Implementation
                 { 
                     ChatName = chatModel.ChatName,
                     CreatorId = chatModel.CreatorId,
-                    DateOfCreation = DateTime.Now,
+                    DateOfCreation = chatModel.DateOfCreation,
                     IsPrivate = chatModel.ChatUsers.Count() == 2 ? true : false,
                     CountUsers = chatModel.ChatUsers.Count() 
                 });
@@ -51,6 +53,14 @@ namespace ServerDatabaseSystem.Implementation
 
                 //binding users with chat 
                 _userChatBinder.AddUsersToChat(chatModel.ChatUsers, context);
+
+                //getting a added chat 
+                var addedChat = context.Chats.FirstOrDefault(c => c.CreatorId == chatModel.CreatorId && c.DateOfCreation.Equals(chatModel.DateOfCreation));
+
+                return new ChatResponseModel()
+                {
+                    Id = addedChat.Id
+                };
             }
         }
 
@@ -66,12 +76,16 @@ namespace ServerDatabaseSystem.Implementation
                 {
                     try
                     {
+                        if (!chatModel.Id.HasValue)
+                            throw new Exception("Ошибка передачи данных, свойство Id модели не было установлено");
+
+                        Chat cht = context.Chats.FirstOrDefault(c => c.Id == chatModel.Id.Value);
+                        if (cht == null)
+                            throw new Exception("Чата с таким идентификатором нет в БД");
+
                         //remove binded users 
                         _userChatBinder.RemoveUsersFromChat(chatModel.ChatUsers, context);
 
-                        Chat cht = context.Chats.FirstOrDefault(c => c.Id == chatModel.Id);
-                        if (cht == null)
-                            throw new Exception("Чата с таким идентификатором нет в БД");
                         context.Chats.Remove(cht);
                         context.SaveChanges();
 
@@ -87,19 +101,46 @@ namespace ServerDatabaseSystem.Implementation
         }
 
         /// <summary>
+        /// Getting chat and binded users with that chat using chat Id 
+        /// </summary>
+        /// <param name="model"><see cref="ChatReceiveModel"/></param>
+        /// <returns><see cref="ChatResponseModel"/></returns>
+        public ChatResponseModel GetChat(ChatReceiveModel model)
+        {
+            using (var context = new DatabaseContext())
+            {
+                var chat = context.Chats.FirstOrDefault(c => c.CreatorId == model.CreatorId && c.DateOfCreation.Equals(model.DateOfCreation));
+                if (chat == null)
+                    throw new Exception("Чат не найден в БД");
+                return new ChatResponseModel()
+                {
+                    Id = chat.Id,
+                    CreatorId = chat.CreatorId,
+                    ChatName = chat.ChatName,
+                    CountUsers = chat.CountUsers,
+                    ChatUsers = GetChatUsers(chat.Id)
+                };
+            }
+        }
+
+        /// <summary>
         /// Getting user from chat using chat Id
         /// </summary>
         /// <param name="chatId"></param>
         /// <returns><see cref="UserListResponseModel"/></returns>
-        public List<UserListResponseModel> GetChatUsers(int chatId)
+        public List<ChatUserResponseModel> GetChatUsers(int chatId)
         {
             using (var context = new DatabaseContext())
             {
                 return context.RelationChatUsers
                     .Where(rcu => rcu.ChatId == chatId)
-                    .Select(rcu => new UserListResponseModel()
+                    .Include(rcu => rcu.User)
+                    .Select(rcu => new ChatUserResponseModel()
                     {
-                        Id = rcu.UserId
+                        Id = rcu.UserId,
+                        UserName = rcu.User.UserName,
+                        Picture = rcu.User.Picture,
+                        IsOnline = rcu.User.IsOnline
                     })
                     .ToList();
             }
@@ -110,7 +151,7 @@ namespace ServerDatabaseSystem.Implementation
         /// </summary>
         /// <param name="userPagination"><see cref="UserPaginationReceiveModel"/></param>
         /// <returns>List of ChatResponceModel <see cref="ChatResponseModel"/></returns>
-        public List<ChatResponseModel> Read(UserPaginationReceiveModel userPagination)
+        public List<ChatResponseModel> ReadPage(UserPaginationReceiveModel userPagination)
         {
             using(DatabaseContext context = new DatabaseContext())
             {
@@ -154,34 +195,42 @@ namespace ServerDatabaseSystem.Implementation
                 {
                     try
                     {
-                        Chat cht = context.Chats.FirstOrDefault(c => c.Id == chatModel.Id);
+                        if (!chatModel.Id.HasValue)
+                            throw new Exception("Ошибка передачи данных, свойство Id модели не было установлено");
+
+                        Chat cht = context.Chats.FirstOrDefault(c => c.Id == chatModel.Id.Value);
                         if (cht == null)
                             throw new Exception("Чата с таким идентификатором нет в БД");
                         cht.ChatName = chatModel.ChatName;
-                        cht.CountUsers = chatModel.ChatUsers.Count();
-                        cht.IsPrivate = chatModel.ChatUsers.Count() == 2 ? true : false;
                         context.SaveChanges();
 
-                        //removing users that isn't contains in chatModel
-                        var removeBindings = context.RelationChatUsers
-                            .Where(rcu => rcu.ChatId == cht.Id && chatModel.ChatUsers.FirstOrDefault(cu => cu.UserId == rcu.UserId) == null)
-                            .Select(rcu => new ChatUserReceiveModel() 
-                            {
-                                UserId = rcu.UserId,
-                                ChatId = rcu.ChatId
-                            })
-                            .ToList();
+                        if (chatModel.ChatUsers != null)
+                        {
+                            cht.CountUsers = chatModel.ChatUsers.Count();
+                            cht.IsPrivate = chatModel.ChatUsers.Count() == 2 ? true : false;
+                            context.SaveChanges();
 
-                        _userChatBinder.RemoveUsersFromChat(removeBindings, context);
-                        context.SaveChanges();
+                            //removing users that isn't contains in chatModel
+                            var removeBindings = context.RelationChatUsers
+                                .Where(rcu => rcu.ChatId == cht.Id && chatModel.ChatUsers.FirstOrDefault(cu => cu.UserId == rcu.UserId) == null)
+                                .Select(rcu => new ChatUserReceiveModel()
+                                {
+                                    UserId = rcu.UserId,
+                                    ChatId = rcu.ChatId
+                                })
+                                .ToList();
 
-                        var addBindings = chatModel.ChatUsers
-                            .Where(cu => context.RelationChatUsers.FirstOrDefault(rcu => rcu.UserId == cu.UserId && rcu.ChatId == cu.ChatId) == null)
-                            .ToList();
+                            _userChatBinder.RemoveUsersFromChat(removeBindings, context);
+                            context.SaveChanges();
 
-                        //adding users that isn't contains in database
-                        _userChatBinder.AddUsersToChat(addBindings, context);
-                        context.SaveChanges();
+                            var addBindings = chatModel.ChatUsers
+                                .Where(cu => context.RelationChatUsers.FirstOrDefault(rcu => rcu.UserId == cu.UserId && rcu.ChatId == cu.ChatId) == null)
+                                .ToList();
+
+                            //adding users that isn't contains in database
+                            _userChatBinder.AddUsersToChat(addBindings, context);
+                            context.SaveChanges();
+                        }
 
                         transaction.Commit();
                     }

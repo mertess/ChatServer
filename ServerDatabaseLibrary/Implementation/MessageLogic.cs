@@ -25,7 +25,7 @@ namespace ServerDatabaseSystem.Implementation
         /// <param name="messageModel"><see cref="MessageReceiveModel"/></param>
         public void AddMessage(MessageReceiveModel messageModel)
         {
-            using(DatabaseContext context = new DatabaseContext())
+            using (DatabaseContext context = new DatabaseContext())
             {
                 context.Messages.Add(new Message()
                 {

@@ -2,15 +2,19 @@
 using ServerBusinessLogic.BusinessLogic;
 using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.Interfaces;
+using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ReceiveModels.MessageModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
+using ServerBusinessLogic.ResponseModels.ChatModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerBusinessLogic.TransmissionModels;
+using ServerDatabaseSystem.DbModels;
 using ServerDatabaseSystem.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Management.Instrumentation;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace ChatTCPServer.Services
@@ -23,7 +27,7 @@ namespace ChatTCPServer.Services
         private readonly ISerializer _serializer;
         private readonly MainLogic _mainLogic;
         private readonly Client _client;
-        private readonly ClientsSynchronizer _clienstSynchronizer;
+        private readonly ClientsSynchronizer _clientsSynchronizer;
 
         /// <summary>
         /// Constructor
@@ -44,7 +48,7 @@ namespace ChatTCPServer.Services
             _client = client;
             _mainLogic = mainLogic;
             _serializer = serializer;
-            _clienstSynchronizer = new ClientsSynchronizer(connectedClients, mainLogic, serializer);
+            _clientsSynchronizer = new ClientsSynchronizer(connectedClients, mainLogic, serializer);
         }
 
         /// <summary>
@@ -56,18 +60,20 @@ namespace ChatTCPServer.Services
         {
             var message = _serializer.Deserialize<ClientOperationMessage>(messageJson);
 
+            //TODO : наверняка можно сделать лучше
             switch(message.Operation)
             {
                 case ClientOperations.Authorization:
                     var userReceiveModelAuthorization = _serializer.Deserialize<UserReceiveModel>(message.JsonData);
                     var authorizationResult = _mainLogic.UserAuthorization(userReceiveModelAuthorization);
 
-                    //TODO : review deserialization
                     if(authorizationResult.OperationResult == OperationsResults.Successfully)
                     {
-                        _client.Id = _serializer.Deserialize<UserResponseModel>(authorizationResult.JsonData).Id;
+                        _client.Id = (authorizationResult.JsonData as UserResponseModel).Id;
                         Console.WriteLine(_client.Id + " Пользователь успешно авторизировался");
                     }
+
+                    authorizationResult.JsonData = _serializer.Serialize(authorizationResult.JsonData as UserResponseModel);
 
                     var authorizationResultJson = _serializer.Serialize(authorizationResult);
                     _client.SendMessage(authorizationResultJson);
@@ -79,15 +85,65 @@ namespace ChatTCPServer.Services
                     _client.SendMessage(registrationResult);
                     break;
 
+                case ClientOperations.UpdateProfile:
+                    var userReceiveModelUpdateProfile = _serializer.Deserialize<UserReceiveModel>(message.JsonData);
+                    var updateProfileResult = _serializer.Serialize(_mainLogic.UserProfileUpdate(userReceiveModelUpdateProfile));
+                    _client.SendMessage(updateProfileResult);
+                    break;
+
+                case ClientOperations.GetUsers:
+                    var userPaginationReceiveModel = _serializer.Deserialize<UserPaginationReceiveModel>(message.JsonData);
+                    var getUsersResult = _mainLogic.GetPageOfUsers(userPaginationReceiveModel);
+
+                    getUsersResult.JsonData = _serializer.Serialize(getUsersResult.JsonData as List<UserListResponseModel>);
+                    var getUsersResultJson = _serializer.Serialize(getUsersResult);
+
+                    _client.SendMessage(getUsersResultJson);
+                    break;
+
                 case ClientOperations.SendMessage:
                     var messageReceiveModelSend = _serializer.Deserialize<MessageReceiveModel>(message.JsonData);
                     var messageSendResult = _serializer.Serialize(_mainLogic.AddMessage(messageReceiveModelSend));
                     _client.SendMessage(messageSendResult);
-                    _clienstSynchronizer.SynchronizeChats(messageReceiveModelSend);
+                    _clientsSynchronizer.SynchronizeChatsMessages(messageReceiveModelSend);
+                    break;
+
+                case ClientOperations.CreateChat:
+                    var chatReceiveModelCreate = _serializer.Deserialize<ChatReceiveModel>(message.JsonData);
+                    var chatCreateResult = _mainLogic.ChatCreate(chatReceiveModelCreate);
+                    chatCreateResult.JsonData = _serializer.Serialize(chatCreateResult.JsonData as ChatResponseModel);
+                    _client.SendMessage(_serializer.Serialize(chatCreateResult));
+                    _clientsSynchronizer.SynchronizeUpdateChats(chatReceiveModelCreate);
+                    break;
+
+                case ClientOperations.UpdateChat:
+                    var chatReceiveModelUpdate = _serializer.Deserialize<ChatReceiveModel>(message.JsonData);
+                    var chatUpdateResult = _mainLogic.ChatUpdate(chatReceiveModelUpdate);
+                    _client.SendMessage(_serializer.Serialize(chatUpdateResult));
+                    _clientsSynchronizer.SynchronizeUpdateChats(chatReceiveModelUpdate);
+                    break;
+
+                case ClientOperations.DeleteChat:
+                    var chatReceiveModelDelete = _serializer.Deserialize<ChatReceiveModel>(message.JsonData);
+                    var chatDeleteResult = _mainLogic.ChatDelete(chatReceiveModelDelete);
+                    _client.SendMessage(_serializer.Serialize(chatDeleteResult));
+                    _clientsSynchronizer.SynchronizeDeleteChats(chatReceiveModelDelete);
+                    break;
+                case ClientOperations.GetChats:
+                    var userPaginationModetGetChats = _serializer.Deserialize<UserPaginationReceiveModel>(message.JsonData);
+                    var getChatsResult = _mainLogic.GetPageOfChats(userPaginationModetGetChats);
+                    getChatsResult.JsonData = _serializer.Serialize(getChatsResult.JsonData as List<ChatResponseModel>);
+                    _client.SendMessage(_serializer.Serialize(getChatsResult));
                     break;
 
                 default:
-                    throw new Exception("Незарегистрированная операция");
+                    _client.SendMessage(_serializer.Serialize(new OperationResultInfo()
+                    {
+                        ErrorInfo = "Незарегистрированная операция",
+                        OperationResult = OperationsResults.Unsuccessfully,
+                        JsonData = null
+                    }));
+                    break;
             }
         }
     }

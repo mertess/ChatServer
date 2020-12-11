@@ -14,14 +14,16 @@ namespace ServerBusinessLogic.Interfaces.DataServices
 {
     public interface IChatLogic
     {
-        void Create(ChatReceiveModel chat);
+        ChatResponseModel Create(ChatReceiveModel chat);
 
         void Update(ChatReceiveModel chat);
 
         void Delete(ChatReceiveModel chat);
 
-        List<ChatResponseModel> Read(UserPaginationReceiveModel userPagination);
+        List<ChatResponseModel> ReadPage(UserPaginationReceiveModel userPagination);
 
-        List<UserListResponseModel> GetChatUsers(int chatId);
+        List<ChatUserResponseModel> GetChatUsers(int chatId);
+
+        ChatResponseModel GetChat(ChatReceiveModel model);
     }
 }

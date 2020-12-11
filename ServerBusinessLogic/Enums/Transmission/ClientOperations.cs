@@ -11,11 +11,12 @@ namespace ServerBusinessLogic.Enums.Transmission
         Authorization,
         Registration,
         UpdateProfile,
-        SendMessage,
+        GetUsers,
 
+        SendMessage,
         CreateChat,
         DeleteChat,
-        AddUserToChat,
-        RemoveUserToChat
+        UpdateChat,
+        GetChats
     }
 }

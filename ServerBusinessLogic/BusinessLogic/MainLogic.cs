@@ -15,6 +15,7 @@ using ServerBusinessLogic.ResponseModels.MessageModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerBusinessLogic.Interfaces;
+using System.Diagnostics;
 
 namespace ServerBusinessLogic.BusinessLogic
 {
@@ -25,22 +26,19 @@ namespace ServerBusinessLogic.BusinessLogic
         private readonly IMessageLogic _messageLogic;
         private readonly IFriendLogic _friendLogic;
         private readonly INotificationLogic _notificationLogic;
-        private readonly ISerializer _serializer;
 
         public MainLogic(
             IChatLogic chatLogic,
             IUserLogic userLogic,
             IMessageLogic messageLogic,
             IFriendLogic friendLogic,
-            INotificationLogic notificationLogic,
-            ISerializer serializer)
+            INotificationLogic notificationLogic)
         {
             _chatLogic = chatLogic;
             _userLogic = userLogic;
             _messageLogic = messageLogic;
             _friendLogic = friendLogic;
             _notificationLogic = notificationLogic;
-            _serializer = serializer;
         }
 
         #region UserLogicOperations
@@ -53,8 +51,7 @@ namespace ServerBusinessLogic.BusinessLogic
                 {
                     ToListener = ListenerType.RegistrationListener,
                     ErrorInfo = string.Empty,
-                    OperationResult = OperationsResults.Successfully,
-                    JsonData = null
+                    OperationResult = OperationsResults.Successfully
                 };
             }
             catch(Exception ex)
@@ -64,8 +61,7 @@ namespace ServerBusinessLogic.BusinessLogic
                 {
                     ToListener = ListenerType.RegistrationListener,
                     ErrorInfo = ex.Message,
-                    OperationResult = OperationsResults.Unsuccessfully,
-                    JsonData = null
+                    OperationResult = OperationsResults.Unsuccessfully
                 };
             }
         }
@@ -81,7 +77,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     ToListener = ListenerType.AuthorizationListener,
                     ErrorInfo = string.Empty,
                     OperationResult = OperationsResults.Successfully,
-                    JsonData = _serializer.Serialize(user)
+                    JsonData = user
                 };
             }
             catch(Exception ex)
@@ -108,7 +104,6 @@ namespace ServerBusinessLogic.BusinessLogic
             }
             catch(Exception ex)
             {
-                Console.WriteLine(ex.Message);
                 return new OperationResultInfo()
                 {
                     ErrorInfo = ex.Message,
@@ -117,19 +112,46 @@ namespace ServerBusinessLogic.BusinessLogic
             }
         }
 
+        public OperationResultInfo GetPageOfUsers(UserPaginationReceiveModel model)
+        {
+            try
+            {
+                var users = _userLogic.ReadPage(model);
+
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.UserListListener,
+                    JsonData = users
+                };
+            }
+            catch(Exception ex)
+            {
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.UserListListener
+                };
+            }
+        }
+
         
         #endregion
         #region ChatLogicOperations
 
-        public OperationResultInfo CreateChat(ChatReceiveModel chatModel)
+        public OperationResultInfo ChatCreate(ChatReceiveModel chatModel)
         {
             try
             {
-                _chatLogic.Create(chatModel);
+                var chatResponseModelResult = _chatLogic.Create(chatModel);
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
-                    OperationResult = OperationsResults.Successfully
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.ChatListListener,
+                    JsonData = chatResponseModelResult
                 };
             }
             catch(Exception ex)
@@ -138,6 +160,7 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = ex.Message,
+                    ToListener = ListenerType.ChatListListener,
                     OperationResult = OperationsResults.Unsuccessfully
                 };
             }
@@ -151,6 +174,7 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
+                    ToListener = ListenerType.ChatListListener,
                     OperationResult = OperationsResults.Successfully
                 };
             }
@@ -160,6 +184,7 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = ex.Message,
+                    ToListener = ListenerType.ChatListListener,
                     OperationResult = OperationsResults.Unsuccessfully
                 };
             }
@@ -173,6 +198,7 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
+                    ToListener = ListenerType.ChatListDeleteListener,
                     OperationResult = OperationsResults.Successfully
                 };
             }
@@ -182,20 +208,69 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = ex.Message,
+                    ToListener = ListenerType.ChatListDeleteListener,
                     OperationResult = OperationsResults.Unsuccessfully
                 };
             }
         }
 
-        public List<UserListResponseModel> GetChatUsers(int chatId)
+        public OperationResultInfo GetChatUsers(int chatId)
         {
             try
             {
-                return _chatLogic.GetChatUsers(chatId);
+                var users = _chatLogic.GetChatUsers(chatId);
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully,
+                    JsonData = users
+                };
             }
-            catch(Exception)
+            catch(Exception ex)
             {
-                throw new Exception("Ошибка получения пользователей чата");
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    JsonData = null
+                };
+            }
+        }
+
+        public ChatResponseModel GetChat(ChatReceiveModel model)
+        {
+            try
+            {
+                return _chatLogic.GetChat(model);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+        }
+
+        public OperationResultInfo GetPageOfChats(UserPaginationReceiveModel model)
+        {
+            try
+            {
+                var chatsPage = _chatLogic.ReadPage(model);
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully,
+                    JsonData = chatsPage,
+                    ToListener = ListenerType.ChatListListener
+                };
+            }
+            catch(Exception ex)
+            {
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.ChatListListener
+                };
             }
         }
 
@@ -211,7 +286,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
-                    OperationResult = OperationsResults.Successfully
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.ChatsMessagesListener
                 };
             }
             catch(Exception ex)
@@ -219,7 +295,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = ex.Message,
-                    OperationResult = OperationsResults.Unsuccessfully
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.ChatsMessagesListener
                 };
             }
         }
@@ -230,9 +307,10 @@ namespace ServerBusinessLogic.BusinessLogic
             {
                 return _messageLogic.ReadMessage(model);
             }
-            catch(Exception)
+            catch(Exception ex)
             {
-                throw;
+                Console.WriteLine(ex.Message);
+                return null;
             }
         }
 
@@ -249,7 +327,48 @@ namespace ServerBusinessLogic.BusinessLogic
             }
             catch(Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully
+                };
+            }
+        }
+
+        public OperationResultInfo UpdateMessage(MessageReceiveModel messageModel)
+        {
+            try
+            {
+                //_messageLogic.Message(messageModel);
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully
+                };
+            }
+        }
+
+        public OperationResultInfo GetChatMessages(ChatPaginationReceiveModel model)
+        {
+            try
+            {
+                //_messageLogic.Message(messageModel);
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully
+                };
+            }
+            catch (Exception ex)
+            {
                 return new OperationResultInfo()
                 {
                     ErrorInfo = ex.Message,

@@ -12,6 +12,6 @@ namespace ServerBusinessLogic.TransmissionModels
         public ListenerType ToListener { get; set; }
         public string ErrorInfo { get; set; }
         public OperationsResults OperationResult { get; set; }
-        public string JsonData { get; set; }
+        public object JsonData { get; set; }
     }
 }
