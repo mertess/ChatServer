@@ -3,13 +3,14 @@ using ServerBusinessLogic.BusinessLogic;
 using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.Interfaces;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
+using ServerBusinessLogic.ReceiveModels.FriendModels;
 using ServerBusinessLogic.ReceiveModels.MessageModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
+using ServerBusinessLogic.ResponseModels.MessageModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
+using ServerBusinessLogic.ReceiveModels.NotificationModels;
 using ServerBusinessLogic.TransmissionModels;
-using ServerDatabaseSystem.DbModels;
-using ServerDatabaseSystem.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Management.Instrumentation;
@@ -61,6 +62,7 @@ namespace ChatTCPServer.Services
             var message = _serializer.Deserialize<ClientOperationMessage>(messageJson);
 
             //TODO : наверняка можно сделать лучше
+            //switch will convert by compiler to hashtable
             switch(message.Operation)
             {
                 case ClientOperations.Authorization:
@@ -84,6 +86,8 @@ namespace ChatTCPServer.Services
                     var registrationResult = _serializer.Serialize(_mainLogic.UserRegistration(userReceiveModelRegistration));
                     _client.SendMessage(registrationResult);
                     break;
+
+//---
 
                 case ClientOperations.UpdateProfile:
                     var userReceiveModelUpdateProfile = _serializer.Deserialize<UserReceiveModel>(message.JsonData);
@@ -127,13 +131,61 @@ namespace ChatTCPServer.Services
                     var chatReceiveModelDelete = _serializer.Deserialize<ChatReceiveModel>(message.JsonData);
                     var chatDeleteResult = _mainLogic.ChatDelete(chatReceiveModelDelete);
                     _client.SendMessage(_serializer.Serialize(chatDeleteResult));
-                    _clientsSynchronizer.SynchronizeDeleteChats(chatReceiveModelDelete);
+                    _clientsSynchronizer.SynchronizeDeletingChats(chatReceiveModelDelete);
                     break;
+
                 case ClientOperations.GetChats:
                     var userPaginationModetGetChats = _serializer.Deserialize<UserPaginationReceiveModel>(message.JsonData);
                     var getChatsResult = _mainLogic.GetPageOfChats(userPaginationModetGetChats);
                     getChatsResult.JsonData = _serializer.Serialize(getChatsResult.JsonData as List<ChatResponseModel>);
                     _client.SendMessage(_serializer.Serialize(getChatsResult));
+                    break;
+//---
+                case ClientOperations.UpdateMessage:
+                    var messageReceiveModelUpdate = _serializer.Deserialize<MessageReceiveModel>(message.JsonData);
+                    var updateMessageResult = _mainLogic.UpdateMessage(messageReceiveModelUpdate);
+                    _client.SendMessage(_serializer.Serialize(updateMessageResult));
+                    _clientsSynchronizer.SynchronizeChatsMessages(messageReceiveModelUpdate);
+                    break;
+
+                case ClientOperations.DeleteMessage:
+                    var messageReceiveModelDelete = _serializer.Deserialize<MessageReceiveModel>(message.JsonData);
+                    var deleteMessageResult = _mainLogic.DeleteMessage(messageReceiveModelDelete);
+                    _client.SendMessage(_serializer.Serialize(deleteMessageResult));
+                    _clientsSynchronizer.SynchronizeChatsDeletingMessages(messageReceiveModelDelete);
+                    break;
+
+                case ClientOperations.GetMessages:
+                    var chatPaginationReceiveMessageGet = _serializer.Deserialize<ChatPaginationReceiveModel>(message.JsonData);
+                    var getChatMessagesResult = _mainLogic.GetChatMessages(chatPaginationReceiveMessageGet);
+                    getChatMessagesResult.JsonData = _serializer.Serialize(getChatMessagesResult.JsonData as List<MessageResponseModel>);
+                    _client.SendMessage(_serializer.Serialize(getChatMessagesResult));
+                    break;
+
+                case ClientOperations.AddFriend:
+                    var friendReceiveModelAdd = _serializer.Deserialize<FriendReceiveModel>(message.JsonData);
+                    _clientsSynchronizer.SynchronizeAddFriendNotifications(friendReceiveModelAdd);
+                    break;
+
+                case ClientOperations.DeleteFriend:
+                    var friendReceiveModelDelete = _serializer.Deserialize<FriendReceiveModel>(message.JsonData);
+                    var friendDeleteResult = _mainLogic.DeleteFriend(friendReceiveModelDelete);
+                    _client.SendMessage(_serializer.Serialize(friendDeleteResult));
+                    _clientsSynchronizer.SynchronizeDeletingFriend(friendReceiveModelDelete);
+                    break;
+
+                case ClientOperations.GetFriends:
+                    var userPaginationReceiveModelGetFriends = _serializer.Deserialize<UserPaginationReceiveModel>(message.JsonData);
+                    var getFriendsResult = _mainLogic.GetFriendsPage(userPaginationReceiveModelGetFriends);
+                    getFriendsResult.JsonData = _serializer.Serialize(getFriendsResult.JsonData as List<UserListResponseModel>);
+                    _client.SendMessage(_serializer.Serialize(getFriendsResult));
+                    break;
+
+                case ClientOperations.UpdateNotification:
+                    var notificationReceiveModelUpdate = _serializer.Deserialize<NotificationReceiveModel>(message.JsonData);
+                    var notificationUpdateResult = _mainLogic.UpdateNotification(notificationReceiveModelUpdate);
+                    _client.SendMessage(_serializer.Serialize(notificationUpdateResult));
+                    _clientsSynchronizer.SynchronizeAddingFriend(notificationReceiveModelUpdate);
                     break;
 
                 default:

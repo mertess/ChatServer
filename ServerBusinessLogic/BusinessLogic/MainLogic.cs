@@ -16,6 +16,10 @@ using ServerBusinessLogic.ResponseModels.ChatModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerBusinessLogic.Interfaces;
 using System.Diagnostics;
+using ServerBusinessLogic.ReceiveModels.FriendModels;
+using System.Net.Http.Headers;
+using ServerBusinessLogic.ReceiveModels.NotificationModels;
+using ServerBusinessLogic.ResponseModels.NotificationModels;
 
 namespace ServerBusinessLogic.BusinessLogic
 {
@@ -134,6 +138,19 @@ namespace ServerBusinessLogic.BusinessLogic
                     OperationResult = OperationsResults.Unsuccessfully,
                     ToListener = ListenerType.UserListListener
                 };
+            }
+        }
+
+        public UserResponseModel GetUser(UserReceiveModel userModel)
+        {
+            try
+            {
+                return _userLogic.GetUser(userModel);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
             }
         }
 
@@ -322,7 +339,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
-                    OperationResult = OperationsResults.Successfully
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.ChatsMessagesDeleteListener
                 };
             }
             catch(Exception ex)
@@ -330,7 +348,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = ex.Message,
-                    OperationResult = OperationsResults.Unsuccessfully
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.ChatsMessagesDeleteListener
                 };
             }
         }
@@ -339,11 +358,12 @@ namespace ServerBusinessLogic.BusinessLogic
         {
             try
             {
-                //_messageLogic.Message(messageModel);
+                _messageLogic.Update(messageModel);
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
-                    OperationResult = OperationsResults.Successfully
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.ChatsMessagesListener
                 };
             }
             catch (Exception ex)
@@ -351,7 +371,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = ex.Message,
-                    OperationResult = OperationsResults.Unsuccessfully
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.ChatsMessagesListener
                 };
             }
         }
@@ -360,11 +381,13 @@ namespace ServerBusinessLogic.BusinessLogic
         {
             try
             {
-                //_messageLogic.Message(messageModel);
+                var messagesPage = _messageLogic.ReadPage(model);
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
-                    OperationResult = OperationsResults.Successfully
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.ChatsMessagesListener,
+                    JsonData = messagesPage
                 };
             }
             catch (Exception ex)
@@ -372,8 +395,186 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = ex.Message,
-                    OperationResult = OperationsResults.Unsuccessfully
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.ChatsMessagesListener
                 };
+            }
+        }
+
+        #endregion
+        #region FriendLogicOperations
+
+        public OperationResultInfo AddFriend(FriendReceiveModel model)
+        {
+            try
+            {
+                _friendLogic.Create(model);
+
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.FriendListListener
+                };
+            }
+            catch(Exception ex)
+            {
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.FriendListListener
+                };
+            }
+        }
+
+        public OperationResultInfo DeleteFriend(FriendReceiveModel model)
+        {
+            try
+            {
+                _friendLogic.Delete(model);
+
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.FriendListDeleteListener
+                };
+            }
+            catch(Exception ex)
+            {
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.FriendListDeleteListener
+                };
+            }
+        }
+
+        public OperationResultInfo GetFriendsPage(UserPaginationReceiveModel model)
+        {
+            try
+            {
+                var friends = _friendLogic.ReadPage(model);
+
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    ToListener = ListenerType.FriendListListener,
+                    OperationResult = OperationsResults.Successfully,
+                    JsonData = friends
+                };
+            }
+            catch(Exception ex)
+            {
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.FriendListListener
+                };
+            }
+        }
+
+        #endregion
+        #region NotificationLogicOperations
+
+        public OperationResultInfo AddNotification(NotificationReceiveModel notification)
+        {
+            try
+            {
+                _notificationLogic.Create(notification);
+
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.NotificationListListener
+                };
+            }
+            catch(Exception ex)
+            {
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.NotificationListListener
+                };
+            }
+        }
+
+        public void DeleteNotification(NotificationReceiveModel notification)
+        {
+            try
+            {
+                _notificationLogic.Delete(notification);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        public OperationResultInfo UpdateNotification(NotificationReceiveModel notification)
+        {
+            try
+            {
+                _notificationLogic.Update(notification);
+
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.NotificationListListener
+                };
+            }
+            catch(Exception ex)
+            {
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.NotificationListListener
+                };
+            }
+        }
+
+        public OperationResultInfo GetNotificationsPage(UserPaginationReceiveModel model)
+        {
+            try
+            {
+                var notifications = _notificationLogic.ReadPage(model);
+
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.NotificationListListener,
+                    JsonData = notifications
+                };
+            }
+            catch(Exception ex)
+            {
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.NotificationListListener
+                };
+            }
+        }
+
+        public NotificationResponseModel GetNotification(NotificationReceiveModel notification)
+        {
+            try
+            {
+                return _notificationLogic.GetNotification(notification);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
             }
         }
 

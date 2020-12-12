@@ -13,8 +13,14 @@ namespace ServerBusinessLogic.Enums.Transmission
 
         ChatListListener,
         ChatListDeleteListener,
-        ChatsMessagesListener,
 
-        UserListListener
+        ChatsMessagesListener,
+        ChatsMessagesDeleteListener,
+
+        UserListListener,
+        FriendListListener,
+        FriendListDeleteListener,
+
+        NotificationListListener
     }
 }

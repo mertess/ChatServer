@@ -16,5 +16,7 @@ namespace ServerBusinessLogic.Interfaces.DataServices
         void Delete(NotificationReceiveModel model);
 
         List<NotificationResponseModel> ReadPage(UserPaginationReceiveModel model);
+
+        NotificationResponseModel GetNotification(NotificationReceiveModel model);
     }
 }

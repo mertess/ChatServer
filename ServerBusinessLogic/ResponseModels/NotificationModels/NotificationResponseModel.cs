@@ -12,6 +12,6 @@ namespace ServerBusinessLogic.ResponseModels.NotificationModels
 
         public string FromUserName { get; set; }
 
-        public byte[] Picture { get; set; }
+        public byte[] UserPicture { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using ServerBusinessLogic.Interfaces.DataServices;
 using ServerBusinessLogic.ReceiveModels.NotificationModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
@@ -82,7 +83,7 @@ namespace ServerDatabaseSystem.Implementation
                         Id = n.Id,
                         Message = n.Message,
                         FromUserName = context.Users.FirstOrDefault(u => u.Id == n.FromUserId).UserName,
-                        Picture = context.Users.FirstOrDefault(u => u.Id == n.FromUserId).Picture
+                        UserPicture = context.Users.FirstOrDefault(u => u.Id == n.FromUserId).Picture
                     })
                     .ToList();
             }
@@ -108,6 +109,28 @@ namespace ServerDatabaseSystem.Implementation
                 }
                 else
                     throw new Exception("Ошибка передачи данных, не было задано свойство Id модели");
+            }
+        }
+
+        public NotificationResponseModel GetNotification(NotificationReceiveModel model)
+        {
+            using (var context = new DatabaseContext())
+            {
+                var notification = context.Notifications
+                    .Include(n => n.FromUser)
+                    .FirstOrDefault(n => model.Id.HasValue && n.Id == model.Id.Value
+                || n.FromUserId == model.FromUserId && n.ToUserId == model.ToUserId);
+
+                if (notification == null)
+                    throw new Exception("Уведомление не найдено");
+
+                return new NotificationResponseModel()
+                {
+                    Id = notification.Id,
+                    FromUserName = notification.FromUser.UserName,
+                    Message = notification.Message,
+                    UserPicture = notification.FromUser.Picture
+                };
             }
         }
     }

@@ -3,7 +3,9 @@ using ChatTCPServer.Services;
 using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.ReceiveModels.MessageModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
+using ServerBusinessLogic.ResponseModels.ChatModels;
 using ServerBusinessLogic.ResponseModels.MessageModels;
+using ServerBusinessLogic.ResponseModels.NotificationModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerBusinessLogic.TransmissionModels;
 using System;
@@ -43,6 +45,14 @@ namespace ChatTCPTestClient
                 DataManager.AddListener(ListenerType.AuthorizationListener, AuthorizationListener);
                 DataManager.AddListener(ListenerType.RegistrationListener, RegistrationListener);
                 DataManager.AddListener(ListenerType.ChatsMessagesListener, MessageListListener);
+                DataManager.AddListener(ListenerType.ChatsMessagesDeleteListener, MessageDeleteListListener);
+                DataManager.AddListener(ListenerType.ChatListListener, ChatListListener);
+                DataManager.AddListener(ListenerType.ChatListDeleteListener, ChatListDeleteListener);
+                DataManager.AddListener(ListenerType.UserListListener, UserListListener);
+                DataManager.AddListener(ListenerType.FriendListListener, FriendsListListener);
+                DataManager.AddListener(ListenerType.FriendListDeleteListener, FriendsDeleteListListener);
+                DataManager.AddListener(ListenerType.NotificationListListener, NotificationListListener);
+
 
                 Task.Run(() => RecieveMessages());
 
@@ -82,7 +92,7 @@ namespace ChatTCPTestClient
 
         static void SendMessageToChat(string message)
         {
-            SendMessage(new ClientOperationMessage() 
+            SendMessage(new ClientOperationMessage()
             {
                 Operation = ClientOperations.SendMessage,
                 JsonData = serializer.Serialize(new MessageReceiveModel()
@@ -134,7 +144,7 @@ namespace ChatTCPTestClient
                     var obj = serializer.Deserialize<OperationResultInfo>(stringBuilder.ToString());
                     DataManager.HandleData(obj.ToListener, obj);
                 }
-                catch(Exception){ }
+                catch (Exception) { }
             }
         }
 
@@ -165,6 +175,96 @@ namespace ChatTCPTestClient
             Console.WriteLine("UserId = " + data.UserId);
             Console.WriteLine("ChatId = " + data.ChatId);
             Console.WriteLine("Message = " + data.UserMassage);
+        }
+
+        static void ChatListListener(OperationResultInfo operationResultInfo)
+        {
+            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
+            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
+            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+            var data = serializer.Deserialize<ChatResponseModel>(operationResultInfo.JsonData as string);
+            Console.WriteLine("ChatId" + data.Id);
+            Console.WriteLine("ChatName" + data.ChatName);
+            Console.WriteLine("CreatorId" + data.CreatorId);
+            Console.WriteLine("CountUsers" + data.CountUsers);
+            foreach (var user in data.ChatUsers)
+                Console.WriteLine(user.Id + " " + user.UserName + " " + user.IsOnline);
+        }
+
+        static void ChatListDeleteListener(OperationResultInfo operationResultInfo)
+        {
+            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
+            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
+            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+            var data = serializer.Deserialize<ChatResponseModel>(operationResultInfo.JsonData as string);
+            Console.WriteLine("ChatId" + data.Id);
+            Console.WriteLine("ChatName" + data.ChatName);
+            Console.WriteLine("CreatorId" + data.CreatorId);
+            Console.WriteLine("CountUsers" + data.CountUsers);
+            foreach (var user in data.ChatUsers)
+                Console.WriteLine(user.Id + " " + user.UserName + " " + user.IsOnline);
+        }
+
+        static void MessageDeleteListListener(OperationResultInfo operationResultInfo)
+        {
+            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
+            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
+            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+            var data = serializer.Deserialize<MessageResponseModel>(operationResultInfo.JsonData as string);
+            Console.WriteLine("MessageId = " + data.Id);
+            Console.WriteLine("UserId = " + data.UserId);
+            Console.WriteLine("ChatId = " + data.ChatId);
+            Console.WriteLine("Message = " + data.UserMassage);
+        }
+
+        static void UserListListener(OperationResultInfo operationResultInfo)
+        {
+            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
+            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
+            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+            var data = serializer.Deserialize<List<UserListResponseModel>>(operationResultInfo.JsonData as string);
+            foreach(var user in data)
+            {
+                Console.WriteLine("UserId = " + user.Id);
+                Console.WriteLine("Username = " + user.UserName);
+            }
+        }
+
+        static void FriendsListListener(OperationResultInfo operationResultInfo)
+        {
+            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
+            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
+            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+            var data = serializer.Deserialize<List<UserListResponseModel>>(operationResultInfo.JsonData as string);
+            foreach (var user in data)
+            {
+                Console.WriteLine("UserId = " + user.Id);
+                Console.WriteLine("Username = " + user.UserName);
+            }
+        }
+
+        static void FriendsDeleteListListener(OperationResultInfo operationResultInfo)
+        {
+            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
+            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
+            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+            var data = serializer.Deserialize<List<UserListResponseModel>>(operationResultInfo.JsonData as string);
+            foreach (var user in data)
+            {
+                Console.WriteLine("UserId = " + user.Id);
+                Console.WriteLine("Username = " + user.UserName);
+            }
+        }
+
+        static void NotificationListListener(OperationResultInfo operationResultInfo)
+        {
+            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
+            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
+            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+            var data = serializer.Deserialize<NotificationResponseModel>(operationResultInfo.JsonData as string);
+            Console.WriteLine("NotificationId " + data.Id);
+            Console.WriteLine("FromUser " + data.FromUserName);
+            Console.WriteLine("NotificationMessage " + data.Message);
         }
 
         static void Disconnect()
