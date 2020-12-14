@@ -298,13 +298,14 @@ namespace ServerBusinessLogic.BusinessLogic
         {
             try
             {
-                _messageLogic.AddMessage(messageModel);
+                var callBackMessage = _messageLogic.AddMessage(messageModel);
 
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
                     OperationResult = OperationsResults.Successfully,
-                    ToListener = ListenerType.ChatsMessagesListener
+                    ToListener = ListenerType.ChatsMessagesListener,
+                    JsonData = callBackMessage
                 };
             }
             catch(Exception ex)

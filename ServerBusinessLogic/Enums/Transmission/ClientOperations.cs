@@ -32,6 +32,7 @@ namespace ServerBusinessLogic.Enums.Transmission
         GetFriends,
 
         //notifications
-        UpdateNotification
+        UpdateNotification,
+        GetNotifications 
     }
 }

@@ -4,7 +4,6 @@ using System.Text;
 
 namespace ServerBusinessLogic.ResponseModels.MessageModels
 {
-    //TODO : DateTime
     public class MessageResponseModel
     {
         public int Id { get; set; }
@@ -14,5 +13,7 @@ namespace ServerBusinessLogic.ResponseModels.MessageModels
         public int ChatId { get; set; }
 
         public string UserMassage { get; set; }
+
+        public DateTime Date { get; set; }
     }
 }

@@ -13,7 +13,7 @@ namespace ServerBusinessLogic.Interfaces.DataServices
 {
     public interface IMessageLogic
     {
-        void AddMessage(MessageReceiveModel message);
+        MessageResponseModel AddMessage(MessageReceiveModel message);
 
         void DeleteMessage(MessageReceiveModel message);
 

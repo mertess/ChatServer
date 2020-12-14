@@ -59,7 +59,10 @@ namespace ServerDatabaseSystem.Implementation
 
                 return new ChatResponseModel()
                 {
-                    Id = addedChat.Id
+                    Id = addedChat.Id,
+                    ChatName = addedChat.ChatName,
+                    CountUsers = addedChat.CountUsers,
+                    CreatorId = addedChat.CreatorId
                 };
             }
         }

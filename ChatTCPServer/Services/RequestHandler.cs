@@ -107,8 +107,10 @@ namespace ChatTCPServer.Services
 
                 case ClientOperations.SendMessage:
                     var messageReceiveModelSend = _serializer.Deserialize<MessageReceiveModel>(message.JsonData);
-                    var messageSendResult = _serializer.Serialize(_mainLogic.AddMessage(messageReceiveModelSend));
-                    _client.SendMessage(messageSendResult);
+                    var messageSendResult = _mainLogic.AddMessage(messageReceiveModelSend);
+                    if (messageSendResult.JsonData != null)
+                        messageSendResult.JsonData = _serializer.Serialize(messageSendResult.JsonData as MessageResponseModel);
+                    _client.SendMessage(_serializer.Serialize(messageSendResult));
                     _clientsSynchronizer.SynchronizeChatsMessages(messageReceiveModelSend);
                     break;
 

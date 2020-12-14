@@ -23,7 +23,7 @@ namespace ServerDatabaseSystem.Implementation
         /// Adding a new message to Messages database table
         /// </summary>
         /// <param name="messageModel"><see cref="MessageReceiveModel"/></param>
-        public void AddMessage(MessageReceiveModel messageModel)
+        public MessageResponseModel AddMessage(MessageReceiveModel messageModel)
         {
             using (DatabaseContext context = new DatabaseContext())
             {
@@ -35,6 +35,21 @@ namespace ServerDatabaseSystem.Implementation
                     UserMessage = messageModel.UserMassage
                 });
                 context.SaveChanges();
+
+                //getting added message from database 
+                var addedMessage = context.Messages.FirstOrDefault(m => m.ChatId == messageModel.ChatId
+                && m.FromUserId == messageModel.FromUserId
+                && m.UserMessage.Equals(messageModel.UserMassage)
+                && m.Date.Equals(messageModel.Date));
+
+                return new MessageResponseModel()
+                {
+                    Id = addedMessage.Id,
+                    UserId = addedMessage.FromUserId,
+                    ChatId = addedMessage.ChatId,
+                    Date = addedMessage.Date,
+                    UserMassage = addedMessage.UserMessage
+                };
             }
         }
 
