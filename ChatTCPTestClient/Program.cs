@@ -1,5 +1,6 @@
 ﻿using ChatTCPServer;
 using ChatTCPServer.Services;
+using Microsoft.SqlServer.Server;
 using ServerBusinessLogic.Enums;
 using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
@@ -66,16 +67,28 @@ namespace ChatTCPTestClient
                 DataManager.AddListener(ListenerType.NotificationListListener, NotificationListListener);
 
                 Task.Run(() => RecieveMessages());
-
-                Authorization("mertess3", "123");
-
-                
+             
                 while(true)
                 {
                     var operation = Console.ReadLine();
                     switch (operation)
                     {
+                        case "!registration":
+                            Console.Clear();
+                            Console.WriteLine("parameters: login, password");
+                            var params1 = Console.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            Registration(params1[0], params1[1]);
+                            Console.WriteLine();
+                            break;
+                        case "!authorization":
+                            Console.Clear();
+                            Console.WriteLine("parameters: login, password");
+                            var params2 = Console.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            Authorization(params2[0], params2[1]);
+                            Console.WriteLine();
+                            break;
                         case "!get_users":
+                            Console.Clear();
                             Console.WriteLine("parameters: page, searching username");
                             var parameters = Console.ReadLine();
                             GetUsers(new UserPaginationReceiveModel()
@@ -87,6 +100,7 @@ namespace ChatTCPTestClient
                             Console.WriteLine();
                             break;
                         case "!update_profile":
+                            Console.Clear();
                             Console.WriteLine("parameters: username, login, password, name, secondname, gender, phonenumber, country, city");
                             var parameters2 = Console.ReadLine();
                             UpdateProfile(new UserReceiveModel()
@@ -105,16 +119,26 @@ namespace ChatTCPTestClient
                             Console.WriteLine();
                             break;
                             //TODO : установка ChatId на сервере, а так же возврат полной модели с сервера, а не только Id чата
+                            //TODO : exception - чат не найден в базе данных, но при этом происходит успешная синхронизация других пользователей 
+                            //но создателя не связывает - количество пользователей 2.
                         case "!create_chat":
+                            Console.Clear();
                             Console.WriteLine("parameters: chatname : chat users id...");
                             var parameters3 = Console.ReadLine();
                             var usersId = parameters3.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[1].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                             var users1 = new List<ChatUserReceiveModel>();
-                            foreach (var user in users1)
+                            foreach (var user in usersId)
+                            {
                                 users1.Add(new ChatUserReceiveModel()
                                 {
                                     UserId = Convert.ToInt32(user)
                                 });
+                            }
+                            //добавляем себя в этот список
+                            users1.Add(new ChatUserReceiveModel()
+                            {
+                                UserId = user.Id
+                            });
                             CreateChat(new ChatReceiveModel()
                             {
                                 ChatName = parameters3.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0],
@@ -125,27 +149,35 @@ namespace ChatTCPTestClient
                             Console.WriteLine();
                             break;
                         case "!update_chat":
+                            Console.Clear();
                             Console.WriteLine("parameters: chatid, new chatname : chat users id...");
                             var parameters4 = Console.ReadLine();
                             var currentChat = chats.FirstOrDefault(c => c.Id == Convert.ToInt32(parameters4.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0]));
                             var usersId2 = parameters4.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[1].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                             var users2 = new List<ChatUserReceiveModel>();
-                            foreach (var user in users2)
+                            foreach (var user in usersId2)
                                 users2.Add(new ChatUserReceiveModel()
                                 {
                                     UserId = Convert.ToInt32(user),
                                     ChatId = currentChat.Id
                                 });
+                            //добавляем себя в этот список
+                            users2.Add(new ChatUserReceiveModel()
+                            {
+                                UserId = user.Id,
+                                ChatId = currentChat.Id
+                            });
                             UpdateChat(new ChatReceiveModel()
                             {
                                 Id = currentChat.Id,
-                                ChatName = parameters4.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[1].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1],
+                                ChatName = parameters4.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1],
                                 CreatorId = user.Id,
                                 ChatUsers = users2
                             });
                             Console.WriteLine();
                             break;
                         case "!delete_chat":
+                            Console.Clear();
                             Console.WriteLine("parameters: chatid");
                             var parameters5 = Console.ReadLine();
                             var currentChat2 = chats.FirstOrDefault(c => c.Id == Convert.ToInt32(parameters5));
@@ -156,6 +188,7 @@ namespace ChatTCPTestClient
                             Console.WriteLine();
                             break;
                         case "!get_chats":
+                            Console.Clear();
                             Console.WriteLine("parameters: page");
                             var page = Convert.ToInt32(Console.ReadLine());
                             GetChats(new UserPaginationReceiveModel()
@@ -166,6 +199,7 @@ namespace ChatTCPTestClient
                             Console.WriteLine();
                             break;
                         case "!send_invite":
+                            Console.Clear();
                             Console.WriteLine("parameters: user id");
                             var userId = Convert.ToInt32(Console.ReadLine());
                             SendInviteToFriend(new FriendReceiveModel()
@@ -176,6 +210,7 @@ namespace ChatTCPTestClient
                             Console.WriteLine();
                             break;
                         case "!get_friends":
+                            Console.Clear();
                             Console.WriteLine("parameters: page, searchname");
                             var parameters6 = Console.ReadLine();
                             GetFriends(new UserPaginationReceiveModel()
@@ -187,16 +222,21 @@ namespace ChatTCPTestClient
                             Console.WriteLine();
                             break;
                         case "!update_notification":
+                            Console.Clear();
                             Console.WriteLine("paramenters: notification id, accept?");
                             var parameters7 = Console.ReadLine();
+                            var notification = notifications.FirstOrDefault(n => n.Id == Convert.ToInt32(parameters7.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0]));
                             UpdateNotification(new NotificationReceiveModel()
                             {
-                                Id = notifications.FirstOrDefault(n => n.Id == Convert.ToInt32(parameters7.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0])).Id,
+                                Id = notification.Id,
+                                FromUserId = notification.FromUserId,
+                                ToUserId = user.Id,
                                 IsAccepted = Convert.ToBoolean(parameters7.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1])
                             });
                             Console.WriteLine();
                             break;
                         case "!get_notifications":
+                            Console.Clear();
                             Console.WriteLine("paramenters: page");
                             var page3 = Convert.ToInt32(Console.ReadLine());
                             GetNotifications(new UserPaginationReceiveModel()
@@ -207,12 +247,14 @@ namespace ChatTCPTestClient
                             Console.WriteLine();
                             break;
                         case "!send_message":
+                            Console.Clear();
                             Console.WriteLine("paramenters: chatId, message");
-                            var parameters8 = Console.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            var parameters8 = Console.ReadLine().Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
                             SendMessageToChat(parameters8[1], Convert.ToInt32(parameters8[0]));
                             Console.WriteLine();
                             break;
                         case "!get_messages":
+                            Console.Clear();
                             Console.WriteLine("paramenters: chatId, page");
                             var parameters9 = Console.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                             GetMessages(new ChatPaginationReceiveModel()
@@ -223,18 +265,20 @@ namespace ChatTCPTestClient
                             Console.WriteLine();
                             break;
                         case "!update_message":
-                            Console.WriteLine("paramenters: chatId, messageId, message");
+                            Console.Clear();
+                            Console.WriteLine("parameters: chatId, messageId, message");
                             var parameters10 = Console.ReadLine().Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
                             UpdateMessage(new MessageReceiveModel()
                             {
-                                ChatId = Convert.ToInt32(parameters10[0]),
+                                ChatId = Convert.ToInt32(parameters10[0].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0]),
                                 FromUserId = user.Id,
-                                Id = Convert.ToInt32(parameters10[1]),
-                                UserMassage = parameters10[2]
+                                Id = Convert.ToInt32(parameters10[0].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1]),
+                                UserMassage = parameters10[1]
                             });
                             Console.WriteLine();
                             break;
                         case "!delete_message":
+                            Console.Clear();
                             Console.WriteLine("paramenters: messageId");
                             var messageId = Convert.ToInt32(Console.ReadLine());
                             DeleteMessage(new MessageReceiveModel()
@@ -244,22 +288,25 @@ namespace ChatTCPTestClient
                             Console.WriteLine();
                             break;
                         case "!help":
+                            Console.Clear();
                             Console.WriteLine("All commands:");
-                            Console.WriteLine("get_users");
-                            Console.WriteLine("update_profile");
-                            Console.WriteLine("create_chat");
-                            Console.WriteLine("update_chat");
-                            Console.WriteLine("delete_chat");
-                            Console.WriteLine("get_chats");
-                            Console.WriteLine("send_invite");
-                            Console.WriteLine("get_friends");
-                            Console.WriteLine("update_notification");
-                            Console.WriteLine("get_notification");
-                            Console.WriteLine("send_message");
-                            Console.WriteLine("get_messages");
+                            Console.WriteLine("authorization +");
+                            Console.WriteLine("registration +");
+                            Console.WriteLine("get_users +");
+                            Console.WriteLine("update_profile -");
+                            Console.WriteLine("create_chat +");
+                            Console.WriteLine("update_chat -");
+                            Console.WriteLine("delete_chat -");
+                            Console.WriteLine("get_chats +");
+                            Console.WriteLine("send_invite + but uncorrect alg");
+                            Console.WriteLine("get_friends +");
+                            Console.WriteLine("update_notification +");
+                            Console.WriteLine("get_notifications - not impl");
+                            Console.WriteLine("send_message +");
+                            Console.WriteLine("get_messages +");
                             Console.WriteLine("show_messages");
-                            Console.WriteLine("update_message");
-                            Console.WriteLine("delete_message");
+                            Console.WriteLine("update_message +");
+                            Console.WriteLine("delete_message +- don't work sync");
                             Console.WriteLine("show_users");
                             Console.WriteLine("show_chats");
                             Console.WriteLine("show_chat_info");
@@ -268,44 +315,62 @@ namespace ChatTCPTestClient
                             Console.WriteLine();
                             break;
                         case "!show_users":
+                            Console.Clear();
                             Console.WriteLine("users: ");
+                            Console.ForegroundColor = ConsoleColor.Green;
                             for(int i = 0; i < users.Count(); i++)
                                 Console.WriteLine($"#{i} user id: {users[i].Id} username: {users[i].UserName}");
+                            Console.ForegroundColor = ConsoleColor.White;
                             Console.WriteLine();
                             break;
                         case "!show_chats":
+                            Console.Clear();
                             Console.WriteLine("your chats:");
+                            Console.ForegroundColor = ConsoleColor.Green;
                             for (int i = 0; i < chats.Count(); i++)
                                 Console.WriteLine($"#{i} chat id: {chats[i].Id} chat name: {chats[i].ChatName}");
+                            Console.ForegroundColor = ConsoleColor.White;
                             Console.WriteLine();
                             break;
                         case "!show_chat_info":
+                            Console.Clear();
                             Console.WriteLine("params: chat id");
+                            Console.ForegroundColor = ConsoleColor.Green;
                             var chatId = Convert.ToInt32(Console.ReadLine());
                             var currentChat3 = chats.FirstOrDefault(c => c.Id == chatId);
                             Console.WriteLine($"chatId : {currentChat3.Id}, creatorId : {currentChat3.CreatorId}, count users: {currentChat3.CountUsers}");
                             Console.WriteLine("chat users: ");
                             for (int i = 0; i < currentChat3.ChatUsers.Count(); i++)
                                 Console.WriteLine($"#{i} user id: {currentChat3.ChatUsers[i].Id} username: {currentChat3.ChatUsers[i].UserName}");
+                            Console.ForegroundColor = ConsoleColor.White;
                             Console.WriteLine();
                             break;
                         case "!show_friends":
+                            Console.Clear();
                             Console.WriteLine("Your friends:");
+                            Console.ForegroundColor = ConsoleColor.Green;
                             for (int i = 0; i < friends.Count(); i++)
                                 Console.WriteLine($"#{i}, friendId : {friends[i].Id}, username : {friends[i].UserName}");
+                            Console.ForegroundColor = ConsoleColor.White;
                             Console.WriteLine();
                             break;
                         case "!show_messages":
+                            Console.Clear();
                             Console.WriteLine("parameters: chat id");
+                            Console.ForegroundColor = ConsoleColor.Green;
                             var chatId4 = Convert.ToInt32(Console.ReadLine());
                             for (int i = 0; i < messages[chatId4].Count(); i++)
                                 Console.WriteLine($"#{i}, message id : {messages[chatId4][i].Id}, userId : {messages[chatId4][i].UserId}, chatId : {messages[chatId4][i].ChatId}, message : {messages[chatId4][i].UserMassage}");
+                            Console.ForegroundColor = ConsoleColor.White;
                             Console.WriteLine();
                             break;
                         case "!show_notifications":
+                            Console.Clear();
                             Console.WriteLine("Your notifications");
+                            Console.ForegroundColor = ConsoleColor.Green;
                             for (int i = 0; i < notifications.Count(); i++)
                                 Console.WriteLine($"#{i}, notification id : {notifications[i].Id}, from user : {notifications[i].FromUserName}, message : {notifications[i].Message}");
+                            Console.ForegroundColor = ConsoleColor.White;
                             Console.WriteLine();
                             break;
                     }
@@ -516,41 +581,48 @@ namespace ChatTCPTestClient
                 StringBuilder stringBuilder = new StringBuilder();
                 do
                 {
-                    networkStream.Read(data, 0, 256);
-                    stringBuilder.Append(Encoding.UTF8.GetString(data, 0, 256));
+                    //!!! Считываем количество прочитанных байтов, а затем именно это кол-во переводим в строку!!!
+                    //!!! Если переводить в строку постоянное колиество байтов из буффера - то в случае, если прочитанных байт будет меньше
+                    //!!! чем мы переводим в строку - то мы получим пробелы, и вся десериализация провалится. 
+                    int count = networkStream.Read(data, 0, 256);
+                    stringBuilder.Append(Encoding.UTF8.GetString(data, 0, count));
                 } while (networkStream.DataAvailable);
-
-                data = new byte[256];
 
                 try
                 {
                     var obj = serializer.Deserialize<OperationResultInfo>(stringBuilder.ToString());
+                    stringBuilder.Clear();
                     DataManager.HandleData(obj.ToListener, obj);
                 }
-                catch (Exception) { }
+                catch (Exception ex) { Console.WriteLine(ex.Message); }
             }
         }
 
         #region listeners
         static void AuthorizationListener(OperationResultInfo operationResultInfo)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
             user = serializer.Deserialize<UserResponseModel>(operationResultInfo.JsonData as string);
             Console.WriteLine("UserId = " + user?.Id);
             Console.WriteLine("UserName = " + user?.UserName);
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         static void RegistrationListener(OperationResultInfo operationResultInfo)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Reg Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         static void MessageListListener(OperationResultInfo operationResultInfo)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
@@ -604,10 +676,12 @@ namespace ChatTCPTestClient
                     Console.WriteLine("Message = " + message.UserMassage);
                 }
             }
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         static void ChatListListener(OperationResultInfo operationResultInfo)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
@@ -617,10 +691,10 @@ namespace ChatTCPTestClient
                 {
                     Console.WriteLine("--Chat received by synchronization from server : ");
                     var data = serializer.Deserialize<ChatResponseModel>(operationResultInfo.JsonData as string);
-                    Console.WriteLine("ChatId" + data.Id);
-                    Console.WriteLine("ChatName" + data.ChatName);
-                    Console.WriteLine("CreatorId" + data.CreatorId);
-                    Console.WriteLine("CountUsers" + data.CountUsers);
+                    Console.WriteLine("ChatId = " + data.Id);
+                    Console.WriteLine("ChatName = " + data.ChatName);
+                    Console.WriteLine("CreatorId = " + data.CreatorId);
+                    Console.WriteLine("CountUsers = " + data.CountUsers);
                     foreach (var user in data.ChatUsers)
                         Console.WriteLine(user.Id + " " + user.UserName + " " + user.IsOnline);
 
@@ -645,36 +719,40 @@ namespace ChatTCPTestClient
 
                 foreach (var chat in data)
                 {
-                    Console.WriteLine("ChatId" + chat.Id);
-                    Console.WriteLine("ChatName" + chat.ChatName);
-                    Console.WriteLine("CreatorId" + chat.CreatorId);
-                    Console.WriteLine("CountUsers" + chat.CountUsers);
+                    Console.WriteLine("ChatId = " + chat.Id);
+                    Console.WriteLine("ChatName = " + chat.ChatName);
+                    Console.WriteLine("CreatorId = " + chat.CreatorId);
+                    Console.WriteLine("CountUsers = " + chat.CountUsers);
                 }
             }
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         static void ChatListDeleteListener(OperationResultInfo operationResultInfo)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
 
             var data = serializer.Deserialize<ChatResponseModel>(operationResultInfo.JsonData as string);
             Console.WriteLine("--Chat for deleting received by synchronization from server : ");
-            Console.WriteLine("ChatId" + data.Id);
-            Console.WriteLine("ChatName" + data.ChatName);
-            Console.WriteLine("CreatorId" + data.CreatorId);
-            Console.WriteLine("CountUsers" + data.CountUsers);
+            Console.WriteLine("ChatId = " + data.Id);
+            Console.WriteLine("ChatName = " + data.ChatName);
+            Console.WriteLine("CreatorId = " + data.CreatorId);
+            Console.WriteLine("CountUsers = " + data.CountUsers);
             foreach (var user in data.ChatUsers)
                 Console.WriteLine(user.Id + " " + user.UserName + " " + user.IsOnline);
 
             var deletingChat = chats.FirstOrDefault(c => c.Id == data.Id);
             if(deletingChat != null)
                 chats.Remove(deletingChat);
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         static void MessageDeleteListListener(OperationResultInfo operationResultInfo)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Message for deleting : ");
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
@@ -689,10 +767,12 @@ namespace ChatTCPTestClient
             var deletingMessage = messages[data.ChatId].FirstOrDefault(m => m.Id == data.Id);
             if (deletingMessage != null)
                 messages[data.ChatId].Remove(deletingMessage);
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         static void UserListListener(OperationResultInfo operationResultInfo)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
@@ -705,10 +785,12 @@ namespace ChatTCPTestClient
             }
 
             users = data;
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         static void FriendsListListener(OperationResultInfo operationResultInfo)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
@@ -719,8 +801,8 @@ namespace ChatTCPTestClient
                     Console.WriteLine("Friend received by server synchronization, he accepted invite : ");
                     var data = serializer.Deserialize<UserListResponseModel>(operationResultInfo.JsonData as string);
                     friends.Add(data);
-                    Console.WriteLine("User Id : " + data.Id);
-                    Console.WriteLine("Username : " + data.UserName);
+                    Console.WriteLine("User Id = " + data.Id);
+                    Console.WriteLine("Username = " + data.UserName);
                 }
                 else
                     Console.WriteLine("JsonData = null");
@@ -736,10 +818,12 @@ namespace ChatTCPTestClient
                     Console.WriteLine("Username = " + user.UserName);
                 }
             }
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         static void FriendsDeleteListListener(OperationResultInfo operationResultInfo)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
@@ -747,10 +831,12 @@ namespace ChatTCPTestClient
             Console.WriteLine("--Friend for deleting received by synchronization from server : ");
             Console.WriteLine("UserId = " + data.Id);
             Console.WriteLine("Username = " + data.UserName);
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         static void NotificationListListener(OperationResultInfo operationResultInfo)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
@@ -760,9 +846,9 @@ namespace ChatTCPTestClient
                 {
                     Console.WriteLine("--Notification received by synchronization from server : ");
                     var data = serializer.Deserialize<NotificationResponseModel>(operationResultInfo.JsonData as string);
-                    Console.WriteLine("NotificationId " + data.Id);
-                    Console.WriteLine("FromUser " + data.FromUserName);
-                    Console.WriteLine("NotificationMessage " + data.Message);
+                    Console.WriteLine("NotificationId = " + data.Id);
+                    Console.WriteLine("FromUser = " + data.FromUserName);
+                    Console.WriteLine("NotificationMessage = " + data.Message);
 
                     notifications.Add(data);
                 }
@@ -775,12 +861,13 @@ namespace ChatTCPTestClient
                 Console.WriteLine("--Notifications received by user action : ");
                 foreach (var notification in data)
                 {
-                    Console.WriteLine("NotificationId " + notification.Id);
-                    Console.WriteLine("FromUser " + notification.FromUserName);
-                    Console.WriteLine("NotificationMessage " + notification.Message);
+                    Console.WriteLine("NotificationId = " + notification.Id);
+                    Console.WriteLine("FromUser = " + notification.FromUserName);
+                    Console.WriteLine("NotificationMessage = " + notification.Message);
                 }
                 notifications = data;
             }
+            Console.ForegroundColor = ConsoleColor.White;
         }
         #endregion
 

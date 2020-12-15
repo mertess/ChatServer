@@ -129,6 +129,7 @@ namespace ServerDatabaseSystem.Implementation
                     Id = notification.Id,
                     FromUserName = notification.FromUser.UserName,
                     Message = notification.Message,
+                    FromUserId = notification.FromUserId,
                     UserPicture = notification.FromUser.Picture
                 };
             }

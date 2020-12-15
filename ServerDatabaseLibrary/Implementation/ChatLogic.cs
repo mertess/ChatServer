@@ -38,9 +38,7 @@ namespace ServerDatabaseSystem.Implementation
         {
             //TODO : review
             using(DatabaseContext context = new DatabaseContext())
-            { 
-                if (context.Chats.FirstOrDefault(c => c.ChatName.Equals(chatModel.ChatName)) != null)
-                    throw new Exception("Чат с таким названием уже есть!");
+            {
                 context.Chats.Add(new Chat()
                 { 
                     ChatName = chatModel.ChatName,
@@ -51,18 +49,22 @@ namespace ServerDatabaseSystem.Implementation
                 });
                 context.SaveChanges();
 
-                //binding users with chat 
-                _userChatBinder.AddUsersToChat(chatModel.ChatUsers, context);
-
                 //getting a added chat 
                 var addedChat = context.Chats.FirstOrDefault(c => c.CreatorId == chatModel.CreatorId && c.DateOfCreation.Equals(chatModel.DateOfCreation));
+
+                //binding received users with new chat 
+                chatModel.ChatUsers.ForEach(cu => cu.ChatId = addedChat.Id);
+
+                //binding users with chat 
+                _userChatBinder.AddUsersToChat(chatModel.ChatUsers, context);
 
                 return new ChatResponseModel()
                 {
                     Id = addedChat.Id,
+                    CreatorId = addedChat.CreatorId,
                     ChatName = addedChat.ChatName,
                     CountUsers = addedChat.CountUsers,
-                    CreatorId = addedChat.CreatorId
+                    ChatUsers = GetChatUsers(addedChat.Id)
                 };
             }
         }
@@ -214,6 +216,7 @@ namespace ServerDatabaseSystem.Implementation
                             context.SaveChanges();
 
                             //removing users that isn't contains in chatModel
+                            //TODO : переписать, не транслируется
                             var removeBindings = context.RelationChatUsers
                                 .Where(rcu => rcu.ChatId == cht.Id && chatModel.ChatUsers.FirstOrDefault(cu => cu.UserId == rcu.UserId) == null)
                                 .Select(rcu => new ChatUserReceiveModel()
@@ -226,6 +229,7 @@ namespace ServerDatabaseSystem.Implementation
                             _userChatBinder.RemoveUsersFromChat(removeBindings, context);
                             context.SaveChanges();
 
+                            //TODO : переписать, не транслируется
                             var addBindings = chatModel.ChatUsers
                                 .Where(cu => context.RelationChatUsers.FirstOrDefault(rcu => rcu.UserId == cu.UserId && rcu.ChatId == cu.ChatId) == null)
                                 .ToList();

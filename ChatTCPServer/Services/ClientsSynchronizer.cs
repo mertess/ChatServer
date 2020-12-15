@@ -200,45 +200,50 @@ namespace ChatTCPServer.Services
                 var user1 = _mainLogic.GetUser(new UserReceiveModel() { Id = notificationReceiveModel.FromUserId });
                 var user2 = _mainLogic.GetUser(new UserReceiveModel() { Id = notificationReceiveModel.ToUserId });
 
-                var connectedUser1 = _connectedClients.FirstOrDefault(c => c.Id == user1.Id);
-                if (connectedUser1 != null)
+                if (user1 != null)
                 {
-                    Task.Run(() =>
+                    var connectedUser1 = _connectedClients.FirstOrDefault(c => c.Id == user1.Id);
+                    if (connectedUser1 != null)
                     {
-                        connectedUser1.SendMessage(_serializer.Serialize(new OperationResultInfo()
+                        Task.Run(() =>
                         {
-                            ErrorInfo = string.Empty,
-                            OperationResult = OperationsResults.Successfully,
-                            ToListener = ListenerType.FriendListListener,
-                            JsonData = _serializer.Serialize(new UserListResponseModel()
+                            connectedUser1.SendMessage(_serializer.Serialize(new OperationResultInfo()
                             {
-                                Id = user2.Id,
-                                UserName = user2.UserName,
-                                Picture = user2.Picture
-                            })
-                        }));
-                    });
+                                ErrorInfo = string.Empty,
+                                OperationResult = OperationsResults.Successfully,
+                                ToListener = ListenerType.FriendListListener,
+                                JsonData = _serializer.Serialize(new UserListResponseModel()
+                                {
+                                    Id = user2.Id,
+                                    UserName = user2.UserName,
+                                    Picture = user2.Picture
+                                })
+                            }));
+                        });
+                    }
                 }
 
-                var connectedUser2 = _connectedClients.FirstOrDefault(c => c.Id == user2.Id);
-
-                if (connectedUser2 != null)
+                if (user2 != null)
                 {
-                    Task.Run(() =>
+                    var connectedUser2 = _connectedClients.FirstOrDefault(c => c.Id == user2.Id);
+                    if (connectedUser2 != null)
                     {
-                        connectedUser2.SendMessage(_serializer.Serialize(new OperationResultInfo()
+                        Task.Run(() =>
                         {
-                            ErrorInfo = string.Empty,
-                            OperationResult = OperationsResults.Successfully,
-                            ToListener = ListenerType.FriendListListener,
-                            JsonData = _serializer.Serialize(new UserListResponseModel()
+                            connectedUser2.SendMessage(_serializer.Serialize(new OperationResultInfo()
                             {
-                                Id = user1.Id,
-                                UserName = user1.UserName,
-                                Picture = user1.Picture
-                            })
-                        }));
-                    });
+                                ErrorInfo = string.Empty,
+                                OperationResult = OperationsResults.Successfully,
+                                ToListener = ListenerType.FriendListListener,
+                                JsonData = _serializer.Serialize(new UserListResponseModel()
+                                {
+                                    Id = user1.Id,
+                                    UserName = user1.UserName,
+                                    Picture = user1.Picture
+                                })
+                            }));
+                        });
+                    }
                 }
             }
         }
