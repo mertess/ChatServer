@@ -114,7 +114,7 @@ namespace ServerDatabaseSystem.Implementation
         {
             using (var context = new DatabaseContext())
             {
-                var chat = context.Chats.FirstOrDefault(c => c.CreatorId == model.CreatorId && c.DateOfCreation.Equals(model.DateOfCreation));
+                var chat = context.Chats.FirstOrDefault(c => c.Id == model.Id);
                 if (chat == null)
                     throw new Exception("Чат не найден в БД");
                 return new ChatResponseModel()
@@ -206,6 +206,7 @@ namespace ServerDatabaseSystem.Implementation
                         Chat cht = context.Chats.FirstOrDefault(c => c.Id == chatModel.Id.Value);
                         if (cht == null)
                             throw new Exception("Чата с таким идентификатором нет в БД");
+
                         cht.ChatName = chatModel.ChatName;
                         context.SaveChanges();
 
@@ -215,10 +216,19 @@ namespace ServerDatabaseSystem.Implementation
                             cht.IsPrivate = chatModel.ChatUsers.Count() == 2 ? true : false;
                             context.SaveChanges();
 
+                            var chatUsersFromDb = context.RelationChatUsers.Where(rcu => rcu.ChatId == cht.Id).ToList();
+
+                            var addBindings = chatModel.ChatUsers
+                                .Where(cu => chatUsersFromDb.FirstOrDefault(rcu => rcu.UserId == cu.UserId) == null)
+                                .ToList();
+
+                            //adding users that isn't contains in database
+                            _userChatBinder.AddUsersToChat(addBindings, context);
+                            context.SaveChanges();
+
                             //removing users that isn't contains in chatModel
-                            //TODO : переписать, не транслируется
-                            var removeBindings = context.RelationChatUsers
-                                .Where(rcu => rcu.ChatId == cht.Id && chatModel.ChatUsers.FirstOrDefault(cu => cu.UserId == rcu.UserId) == null)
+                            var removeBindings = chatUsersFromDb
+                                .Where(rcu => chatModel.ChatUsers.FirstOrDefault(cu => cu.UserId == rcu.UserId) == null)
                                 .Select(rcu => new ChatUserReceiveModel()
                                 {
                                     UserId = rcu.UserId,
@@ -227,15 +237,6 @@ namespace ServerDatabaseSystem.Implementation
                                 .ToList();
 
                             _userChatBinder.RemoveUsersFromChat(removeBindings, context);
-                            context.SaveChanges();
-
-                            //TODO : переписать, не транслируется
-                            var addBindings = chatModel.ChatUsers
-                                .Where(cu => context.RelationChatUsers.FirstOrDefault(rcu => rcu.UserId == cu.UserId && rcu.ChatId == cu.ChatId) == null)
-                                .ToList();
-
-                            //adding users that isn't contains in database
-                            _userChatBinder.AddUsersToChat(addBindings, context);
                             context.SaveChanges();
                         }
 

@@ -183,7 +183,12 @@ namespace ChatTCPTestClient
                             var currentChat2 = chats.FirstOrDefault(c => c.Id == Convert.ToInt32(parameters5));
                             DeleteChat(new ChatReceiveModel()
                             {
-                                Id = currentChat2.Id
+                                Id = currentChat2.Id,
+                                ChatUsers = currentChat2.ChatUsers.Select(cu => new ChatUserReceiveModel()
+                                {
+                                    ChatId = currentChat2.Id,
+                                    UserId = cu.Id
+                                }).ToList()
                             });
                             Console.WriteLine();
                             break;
@@ -295,8 +300,8 @@ namespace ChatTCPTestClient
                             Console.WriteLine("get_users +");
                             Console.WriteLine("update_profile -");
                             Console.WriteLine("create_chat +");
-                            Console.WriteLine("update_chat -");
-                            Console.WriteLine("delete_chat -");
+                            Console.WriteLine("update_chat +");
+                            Console.WriteLine("delete_chat +");
                             Console.WriteLine("get_chats +");
                             Console.WriteLine("send_invite + but uncorrect alg");
                             Console.WriteLine("get_friends +");

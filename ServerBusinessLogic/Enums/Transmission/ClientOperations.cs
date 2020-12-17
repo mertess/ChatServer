@@ -13,6 +13,7 @@ namespace ServerBusinessLogic.Enums.Transmission
         Registration,
         UpdateProfile,
         GetUsers,
+        GetUser,
 
         //messages
         SendMessage,
