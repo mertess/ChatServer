@@ -52,7 +52,7 @@ namespace ServerDatabaseSystem.Implementation
                 //getting a added chat 
                 var addedChat = context.Chats.FirstOrDefault(c => c.CreatorId == chatModel.CreatorId && c.DateOfCreation.Equals(chatModel.DateOfCreation));
 
-                //binding received users with new chat 
+                //binding received users id with new chat id
                 chatModel.ChatUsers.ForEach(cu => cu.ChatId = addedChat.Id);
 
                 //binding users with chat 

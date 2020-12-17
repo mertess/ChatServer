@@ -1,21 +1,17 @@
 ﻿using ServerBusinessLogic.BusinessLogic;
+using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.Interfaces;
+using ServerBusinessLogic.ReceiveModels.ChatModels;
+using ServerBusinessLogic.ReceiveModels.FriendModels;
 using ServerBusinessLogic.ReceiveModels.MessageModels;
 using ServerBusinessLogic.ReceiveModels.NotificationModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
-using ServerBusinessLogic.TransmissionModels;
-using ServerBusinessLogic.Enums.Transmission;
-using System;
-using System.Collections.Generic;
-using System.Data.Odbc;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
-using ServerBusinessLogic.ReceiveModels.FriendModels;
-using ServerDatabaseSystem.DbModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
+using ServerBusinessLogic.TransmissionModels;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ChatTCPServer.Services
 {
@@ -31,7 +27,7 @@ namespace ChatTCPServer.Services
         private readonly List<Client> _connectedClients;
 
         /// <summary>
-        /// Main logic working with database tables
+        /// Main logic of working with database tables
         /// <see cref="MainLogic"/>
         /// </summary>
         private readonly MainLogic _mainLogic;
@@ -42,7 +38,7 @@ namespace ChatTCPServer.Services
         private readonly ISerializer _serializer;
 
 
-        public ClientsSynchronizer(List<Client> connectedClients, MainLogic mainLogic, ISerializer serializer) 
+        public ClientsSynchronizer(List<Client> connectedClients, MainLogic mainLogic, ISerializer serializer)
         {
             _mainLogic = mainLogic;
             _connectedClients = connectedClients;
@@ -58,7 +54,7 @@ namespace ChatTCPServer.Services
             var chatUsers = _mainLogic.GetChatUsers(message.ChatId).JsonData as List<ChatUserResponseModel>;
             var onlineUsers = _connectedClients.Where(ou => chatUsers.FirstOrDefault(u => u.Id == ou.Id) != null && ou.Id != message.FromUserId);
 
-            Parallel.ForEach(onlineUsers, (ou) => 
+            Parallel.ForEach(onlineUsers, (ou) =>
             {
                 var responseJson = _serializer.Serialize(new OperationResultInfo()
                 {
@@ -93,14 +89,12 @@ namespace ChatTCPServer.Services
         }
 
         /// <summary>
-        /// Synchronization chats updatings
+        /// Synchronization chats creatings
         /// </summary>
-        /// <param name="chatReceiveModel"></param>
-        public void SynchronizeUpdateChats(ChatReceiveModel chatReceiveModel)
+        /// <param name="chatReceiveModel"><see cref="ChatReceiveModel"/></param>
+        public void SynchronizeCreatingChat(ChatResponseModel chatResponseModel)
         {
-            var chatFromDb = _mainLogic.GetChat(chatReceiveModel);
-
-            var chatUsers = _connectedClients.Where(connClient => connClient.Id != chatFromDb.CreatorId && chatFromDb.ChatUsers.FirstOrDefault(cu => cu.Id == connClient.Id) != null);
+            var chatUsers = _connectedClients.Where(connClient => connClient.Id != chatResponseModel.CreatorId && chatResponseModel.ChatUsers.FirstOrDefault(cu => cu.Id == connClient.Id) != null);
 
             Parallel.ForEach(chatUsers, (cu) =>
             {
@@ -108,7 +102,7 @@ namespace ChatTCPServer.Services
                 {
                     ErrorInfo = string.Empty,
                     OperationResult = OperationsResults.Successfully,
-                    JsonData = _serializer.Serialize(chatFromDb),
+                    JsonData = _serializer.Serialize(chatResponseModel),
                     ToListener = ListenerType.ChatListListener
                 });
 
@@ -117,10 +111,40 @@ namespace ChatTCPServer.Services
         }
 
         /// <summary>
+        /// Synchronization chats updatings
+        /// </summary>
+        /// <param name="chatReceiveModel"><see cref="ChatReceiveModel"/></param>
+        public void SynchronizeUpdatingChat(ChatReceiveModel chatReceiveModel, ChatResponseModel chatReceiveModelBeforeUpdate)
+        {
+            var deletedUsers = chatReceiveModelBeforeUpdate.ChatUsers.Where(cu => chatReceiveModel.ChatUsers.FirstOrDefault(newChatUser => newChatUser.UserId == cu.Id) == null);
+            var deletedOnlineChatUsers = _connectedClients.Where(cc => deletedUsers.FirstOrDefault(du => du.Id == cc.Id) != null);
+
+            var responseForDeletedUsers = new OperationResultInfo()
+            {
+                ErrorInfo = string.Empty,
+                OperationResult = OperationsResults.Successfully,
+                JsonData = _serializer.Serialize(chatReceiveModel),
+                ToListener = ListenerType.ChatListDeleteListener
+            };
+            var responseForDeletedUsersJson = _serializer.Serialize(responseForDeletedUsers);
+
+            //send responses for deleted users from chat
+            Parallel.ForEach(deletedOnlineChatUsers, (cu) => cu.SendMessage(responseForDeletedUsersJson));
+
+            var onlineChatUsers = _connectedClients.Where(cc => cc.Id != chatReceiveModel.CreatorId && chatReceiveModel.ChatUsers.FirstOrDefault(cu => cu.UserId == cc.Id) != null);
+
+            responseForDeletedUsers.ToListener = ListenerType.ChatListListener;
+            var responseJson = _serializer.Serialize(responseForDeletedUsers);
+
+            //send responses for users of it's chat with info about updating
+            Parallel.ForEach(onlineChatUsers, (cu) => cu.SendMessage(responseJson));
+        }
+
+        /// <summary>
         /// Syncronization deleting chats 
         /// </summary>
         /// <param name="chatReceiveModel"></param>
-        public void SynchronizeDeletingChats(ChatReceiveModel chatReceiveModel)
+        public void SynchronizeDeletingChat(ChatReceiveModel chatReceiveModel)
         {
             var chatUsers = _connectedClients.Where(connClient => connClient.Id != chatReceiveModel.CreatorId && chatReceiveModel.ChatUsers.FirstOrDefault(cu => cu.UserId == connClient.Id) != null);
 
@@ -151,7 +175,7 @@ namespace ChatTCPServer.Services
 
             var notificationDb = _mainLogic.GetNotification(notification);
 
-            if(notificationDb == null)
+            if (notificationDb == null)
             {
                 notification.IsAccepted = false;
                 notification.Message = $"Пользователь {_mainLogic.GetUser(new UserReceiveModel() { Id = notification.FromUserId }).UserName} хочет добавить вас в друзья";

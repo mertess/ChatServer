@@ -67,7 +67,7 @@ namespace ChatTCPServer
         }
 
         private void ProcessClientOperation(string messageJson) => _requestHandler.HandleRequest(messageJson);
-
+       
         private string GetMessage()
         {
             byte[] data = new byte[256];

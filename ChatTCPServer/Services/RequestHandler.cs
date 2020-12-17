@@ -117,23 +117,24 @@ namespace ChatTCPServer.Services
                 case ClientOperations.CreateChat:
                     var chatReceiveModelCreate = _serializer.Deserialize<ChatReceiveModel>(message.JsonData);
                     var chatCreateResult = _mainLogic.ChatCreate(chatReceiveModelCreate);
+                    _clientsSynchronizer.SynchronizeCreatingChat(chatCreateResult.JsonData as ChatResponseModel);
                     chatCreateResult.JsonData = _serializer.Serialize(chatCreateResult.JsonData as ChatResponseModel);
                     _client.SendMessage(_serializer.Serialize(chatCreateResult));
-                    _clientsSynchronizer.SynchronizeUpdateChats(chatReceiveModelCreate);
                     break;
 
                 case ClientOperations.UpdateChat:
                     var chatReceiveModelUpdate = _serializer.Deserialize<ChatReceiveModel>(message.JsonData);
+                    var chatBeforeUpdate = _mainLogic.GetChat(chatReceiveModelUpdate);
                     var chatUpdateResult = _mainLogic.ChatUpdate(chatReceiveModelUpdate);
                     _client.SendMessage(_serializer.Serialize(chatUpdateResult));
-                    _clientsSynchronizer.SynchronizeUpdateChats(chatReceiveModelUpdate);
+                    _clientsSynchronizer.SynchronizeUpdatingChat(chatReceiveModelUpdate, chatBeforeUpdate);
                     break;
 
                 case ClientOperations.DeleteChat:
                     var chatReceiveModelDelete = _serializer.Deserialize<ChatReceiveModel>(message.JsonData);
                     var chatDeleteResult = _mainLogic.ChatDelete(chatReceiveModelDelete);
                     _client.SendMessage(_serializer.Serialize(chatDeleteResult));
-                    _clientsSynchronizer.SynchronizeDeletingChats(chatReceiveModelDelete);
+                    _clientsSynchronizer.SynchronizeDeletingChat(chatReceiveModelDelete);
                     break;
 
                 case ClientOperations.GetChats:
