@@ -80,6 +80,7 @@ namespace ServerDatabaseSystem.Implementation
                     context.Friends
                     .Where(f => f.UserId == model.UserId)
                     .Select(f => context.Users.FirstOrDefault(u => u.Id == f.FriendId))
+                    .ToList()
                     .Where(u => u.UserName.StartsWith(model.SearchingUserName, true, CultureInfo.InvariantCulture))
                     .Skip(model.Page * 10)
                     .Take(10)

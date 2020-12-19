@@ -187,12 +187,13 @@ namespace ServerBusinessLogic.BusinessLogic
         {
             try
             {
-                _chatLogic.Update(chatModel);
+                var updatedChat = _chatLogic.Update(chatModel);
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
                     ToListener = ListenerType.ChatListListener,
-                    OperationResult = OperationsResults.Successfully
+                    OperationResult = OperationsResults.Successfully,
+                    JsonData = updatedChat
                 };
             }
             catch(Exception ex)
@@ -231,28 +232,7 @@ namespace ServerBusinessLogic.BusinessLogic
             }
         }
 
-        public OperationResultInfo GetChatUsers(int chatId)
-        {
-            try
-            {
-                var users = _chatLogic.GetChatUsers(chatId);
-                return new OperationResultInfo()
-                {
-                    ErrorInfo = string.Empty,
-                    OperationResult = OperationsResults.Successfully,
-                    JsonData = users
-                };
-            }
-            catch(Exception ex)
-            {
-                return new OperationResultInfo()
-                {
-                    ErrorInfo = ex.Message,
-                    OperationResult = OperationsResults.Unsuccessfully,
-                    JsonData = null
-                };
-            }
-        }
+        public List<ChatUserResponseModel> GetChatUsers(int chatId) => _chatLogic.GetChatUsers(chatId);
 
         public ChatResponseModel GetChat(ChatReceiveModel model)
         {
@@ -319,19 +299,6 @@ namespace ServerBusinessLogic.BusinessLogic
             }
         }
 
-        public MessageResponseModel GetMessage(MessageUserReceiveModel model)
-        {
-            try
-            {
-                return _messageLogic.ReadMessage(model);
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return null;
-            }
-        }
-
         public OperationResultInfo DeleteMessage(MessageReceiveModel messageModel)
         {
             try
@@ -359,12 +326,13 @@ namespace ServerBusinessLogic.BusinessLogic
         {
             try
             {
-                _messageLogic.Update(messageModel);
+                var messageResponseModel = _messageLogic.Update(messageModel);
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
                     OperationResult = OperationsResults.Successfully,
-                    ToListener = ListenerType.ChatsMessagesListener
+                    ToListener = ListenerType.ChatsMessagesListener,
+                    JsonData = messageResponseModel
                 };
             }
             catch (Exception ex)

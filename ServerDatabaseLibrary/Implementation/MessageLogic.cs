@@ -23,6 +23,7 @@ namespace ServerDatabaseSystem.Implementation
         /// Adding a new message to Messages database table
         /// </summary>
         /// <param name="messageModel"><see cref="MessageReceiveModel"/></param>
+        /// <returns>?<see cref="MessageResponseModel"/></returns>
         public MessageResponseModel AddMessage(MessageReceiveModel messageModel)
         {
             using (DatabaseContext context = new DatabaseContext())
@@ -92,32 +93,10 @@ namespace ServerDatabaseSystem.Implementation
                         Id = m.Id,
                         UserMassage = m.UserMessage,
                         ChatId = m.ChatId,
-                        UserId = m.FromUserId
+                        UserId = m.FromUserId,
+                        Date = m.Date
                     })
                     .ToList();
-            }
-        }
-
-        /// <summary>
-        /// Reading one message from Messages database table by chat Id and user Id
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns><see cref="MessageResponseModel"/></returns>
-        public MessageResponseModel ReadMessage(MessageUserReceiveModel model)
-        {
-            using (var context = new DatabaseContext())
-            {
-                var message = context.Messages.FirstOrDefault(m => m.FromUserId == model.UserId && m.ChatId == model.ChatId && m.UserMessage.Equals(model.Message));
-                if (message == null)
-                    throw new Exception("Сообщение не найдено!");
-
-                return new MessageResponseModel()
-                {
-                    Id = message.Id,
-                    UserMassage = message.UserMessage,
-                    UserId = message.FromUserId,
-                    ChatId = message.ChatId
-                };
             }
         }
 
@@ -125,7 +104,7 @@ namespace ServerDatabaseSystem.Implementation
         /// Updating exist message in Messages database table
         /// </summary>
         /// <param name="message"><see cref="MessageReceiveModel"/></param>
-        public void Update(MessageReceiveModel message)
+        public MessageResponseModel Update(MessageReceiveModel message)
         {
             using (var context = new DatabaseContext())
             {
@@ -141,6 +120,18 @@ namespace ServerDatabaseSystem.Implementation
                 }
                 else
                     throw new Exception("Ошибка передачи данных, у модели не установлено свойство Id");
+
+                //getting updated message from database 
+                var updatedMessage = context.Messages.FirstOrDefault(m => m.Id == message.Id);
+
+                return new MessageResponseModel()
+                {
+                    Id = updatedMessage.Id,
+                    UserId = updatedMessage.FromUserId,
+                    ChatId = updatedMessage.ChatId,
+                    Date = updatedMessage.Date,
+                    UserMassage = updatedMessage.UserMessage
+                };
             }
         }
     }

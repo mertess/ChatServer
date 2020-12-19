@@ -7,6 +7,7 @@ using ServerBusinessLogic.ReceiveModels.MessageModels;
 using ServerBusinessLogic.ReceiveModels.NotificationModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
+using ServerBusinessLogic.ResponseModels.MessageModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerBusinessLogic.TransmissionModels;
 using System.Collections.Generic;
@@ -48,11 +49,10 @@ namespace ChatTCPServer.Services
         /// <summary>
         /// Synchronization users messages 
         /// </summary>
-        public void SynchronizeChatsMessages(MessageReceiveModel message)
+        public void SynchronizeChatsMessages(MessageResponseModel message)
         {
-            var messageFromDb = _mainLogic.GetMessage(new MessageUserReceiveModel() { UserId = message.FromUserId, ChatId = message.ChatId, Message = message.UserMassage });
-            var chatUsers = _mainLogic.GetChatUsers(message.ChatId).JsonData as List<ChatUserResponseModel>;
-            var onlineUsers = _connectedClients.Where(ou => chatUsers.FirstOrDefault(u => u.Id == ou.Id) != null && ou.Id != message.FromUserId);
+            var chatUsers = _mainLogic.GetChatUsers(message.ChatId);
+            var onlineUsers = _connectedClients.Where(ou => ou.Id != message.UserId && chatUsers.FirstOrDefault(u => u.Id == ou.Id) != null);
 
             Parallel.ForEach(onlineUsers, (ou) =>
             {
@@ -61,7 +61,7 @@ namespace ChatTCPServer.Services
                     ErrorInfo = string.Empty,
                     ToListener = ListenerType.ChatsMessagesListener,
                     OperationResult = OperationsResults.Successfully,
-                    JsonData = _serializer.Serialize(messageFromDb)
+                    JsonData = _serializer.Serialize(message)
                 });
                 ou.SendMessage(responseJson);
             });
@@ -72,7 +72,7 @@ namespace ChatTCPServer.Services
         /// </summary>
         public void SynchronizeChatsDeletingMessages(MessageReceiveModel message)
         {
-            var chatUsers = _mainLogic.GetChatUsers(message.ChatId).JsonData as List<ChatUserResponseModel>;
+            var chatUsers = _mainLogic.GetChatUsers(message.ChatId);
             var onlineUsers = _connectedClients.Where(ou => ou.Id != message.FromUserId && chatUsers.FirstOrDefault(u => u.Id == ou.Id) != null);
 
             Parallel.ForEach(onlineUsers, (ou) =>
@@ -82,7 +82,11 @@ namespace ChatTCPServer.Services
                     ErrorInfo = string.Empty,
                     ToListener = ListenerType.ChatsMessagesDeleteListener,
                     OperationResult = OperationsResults.Successfully,
-                    JsonData = _serializer.Serialize(message)
+                    JsonData = _serializer.Serialize(new MessageResponseModel() 
+                    {
+                        Id = message.Id.Value,
+                        ChatId = message.ChatId
+                    })
                 });
                 ou.SendMessage(responseJson);
             });
@@ -113,17 +117,17 @@ namespace ChatTCPServer.Services
         /// <summary>
         /// Synchronization chats updatings
         /// </summary>
-        /// <param name="chatReceiveModel"><see cref="ChatReceiveModel"/></param>
-        public void SynchronizeUpdatingChat(ChatReceiveModel chatReceiveModel, ChatResponseModel chatReceiveModelBeforeUpdate)
+        /// <param name="chatResponseModelAfterUpdate"><see cref="ChatReceiveModel"/></param>
+        public void SynchronizeUpdatingChat(ChatResponseModel chatResponseModelAfterUpdate, ChatResponseModel chatResponseModelBeforeUpdate)
         {
-            var deletedUsers = chatReceiveModelBeforeUpdate.ChatUsers.Where(cu => chatReceiveModel.ChatUsers.FirstOrDefault(newChatUser => newChatUser.UserId == cu.Id) == null);
+            var deletedUsers = chatResponseModelBeforeUpdate.ChatUsers.Where(cu => chatResponseModelAfterUpdate.ChatUsers.FirstOrDefault(newChatUser => newChatUser.Id == cu.Id) == null);
             var deletedOnlineChatUsers = _connectedClients.Where(cc => deletedUsers.FirstOrDefault(du => du.Id == cc.Id) != null);
 
             var responseForDeletedUsers = new OperationResultInfo()
             {
                 ErrorInfo = string.Empty,
                 OperationResult = OperationsResults.Successfully,
-                JsonData = _serializer.Serialize(chatReceiveModel),
+                JsonData = _serializer.Serialize(chatResponseModelAfterUpdate),
                 ToListener = ListenerType.ChatListDeleteListener
             };
             var responseForDeletedUsersJson = _serializer.Serialize(responseForDeletedUsers);
@@ -131,7 +135,8 @@ namespace ChatTCPServer.Services
             //send responses for deleted users from chat
             Parallel.ForEach(deletedOnlineChatUsers, (cu) => cu.SendMessage(responseForDeletedUsersJson));
 
-            var onlineChatUsers = _connectedClients.Where(cc => cc.Id != chatReceiveModel.CreatorId && chatReceiveModel.ChatUsers.FirstOrDefault(cu => cu.UserId == cc.Id) != null);
+            var onlineChatUsers = _connectedClients.Where(cc => cc.Id != chatResponseModelAfterUpdate.CreatorId 
+                && chatResponseModelAfterUpdate.ChatUsers.FirstOrDefault(cu => cu.Id == cc.Id) != null);
 
             responseForDeletedUsers.ToListener = ListenerType.ChatListListener;
             var responseJson = _serializer.Serialize(responseForDeletedUsers);

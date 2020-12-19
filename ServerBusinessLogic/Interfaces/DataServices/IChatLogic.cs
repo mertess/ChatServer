@@ -16,7 +16,7 @@ namespace ServerBusinessLogic.Interfaces.DataServices
     {
         ChatResponseModel Create(ChatReceiveModel chat);
 
-        void Update(ChatReceiveModel chat);
+        ChatResponseModel Update(ChatReceiveModel chat);
 
         void Delete(ChatReceiveModel chat);
 

@@ -113,7 +113,9 @@ namespace ServerDatabaseSystem.Implementation
                     })
                     .ToList()
                     : context.Users
-                    .Where(u => u.Id != userModel.UserId && u.UserName.StartsWith(userModel.SearchingUserName, true, CultureInfo.InvariantCulture))
+                    .Where(u => u.Id != userModel.UserId)
+                    .ToList()
+                    .Where(u => u.UserName.StartsWith(userModel.SearchingUserName, true, CultureInfo.InvariantCulture))
                     .Skip(userModel.Page * 10)
                     .Take(10)
                     .Select(u => new UserListResponseModel()

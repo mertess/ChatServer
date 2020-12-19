@@ -17,10 +17,8 @@ namespace ServerBusinessLogic.Interfaces.DataServices
 
         void DeleteMessage(MessageReceiveModel message);
 
-        void Update(MessageReceiveModel message);
+        MessageResponseModel Update(MessageReceiveModel message);
 
         List<MessageResponseModel> ReadPage(ChatPaginationReceiveModel chat);
-
-        MessageResponseModel ReadMessage(MessageUserReceiveModel model);
     }
 }

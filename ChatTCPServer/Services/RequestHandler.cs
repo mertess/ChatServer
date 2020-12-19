@@ -108,17 +108,27 @@ namespace ChatTCPServer.Services
                 case ClientOperations.SendMessage:
                     var messageReceiveModelSend = _serializer.Deserialize<MessageReceiveModel>(message.JsonData);
                     var messageSendResult = _mainLogic.AddMessage(messageReceiveModelSend);
+
                     if (messageSendResult.JsonData != null)
-                        messageSendResult.JsonData = _serializer.Serialize(messageSendResult.JsonData as MessageResponseModel);
+                    {
+                        var messageResponseModel = messageSendResult.JsonData as MessageResponseModel;
+                        _clientsSynchronizer.SynchronizeChatsMessages(messageResponseModel);
+                        messageSendResult.JsonData = _serializer.Serialize(messageResponseModel);
+                    }
+
                     _client.SendMessage(_serializer.Serialize(messageSendResult));
-                    _clientsSynchronizer.SynchronizeChatsMessages(messageReceiveModelSend);
                     break;
 
                 case ClientOperations.CreateChat:
                     var chatReceiveModelCreate = _serializer.Deserialize<ChatReceiveModel>(message.JsonData);
                     var chatCreateResult = _mainLogic.ChatCreate(chatReceiveModelCreate);
-                    _clientsSynchronizer.SynchronizeCreatingChat(chatCreateResult.JsonData as ChatResponseModel);
-                    chatCreateResult.JsonData = _serializer.Serialize(chatCreateResult.JsonData as ChatResponseModel);
+
+                    if (chatCreateResult.JsonData != null)
+                    {
+                        var chatResponseModel = chatCreateResult.JsonData as ChatResponseModel;
+                        _clientsSynchronizer.SynchronizeCreatingChat(chatResponseModel);
+                        chatCreateResult.JsonData = _serializer.Serialize(chatResponseModel);
+                    }
                     _client.SendMessage(_serializer.Serialize(chatCreateResult));
                     break;
 
@@ -126,15 +136,23 @@ namespace ChatTCPServer.Services
                     var chatReceiveModelUpdate = _serializer.Deserialize<ChatReceiveModel>(message.JsonData);
                     var chatBeforeUpdate = _mainLogic.GetChat(chatReceiveModelUpdate);
                     var chatUpdateResult = _mainLogic.ChatUpdate(chatReceiveModelUpdate);
+
+                    if(chatUpdateResult.JsonData != null)
+                    {
+                        var chatResponseModelAfterUpdate = chatUpdateResult.JsonData as ChatResponseModel;
+                        _clientsSynchronizer.SynchronizeUpdatingChat(chatResponseModelAfterUpdate, chatBeforeUpdate);
+                        chatUpdateResult.JsonData = _serializer.Serialize(chatResponseModelAfterUpdate);
+                    }
                     _client.SendMessage(_serializer.Serialize(chatUpdateResult));
-                    _clientsSynchronizer.SynchronizeUpdatingChat(chatReceiveModelUpdate, chatBeforeUpdate);
                     break;
 
                 case ClientOperations.DeleteChat:
                     var chatReceiveModelDelete = _serializer.Deserialize<ChatReceiveModel>(message.JsonData);
                     var chatDeleteResult = _mainLogic.ChatDelete(chatReceiveModelDelete);
                     _client.SendMessage(_serializer.Serialize(chatDeleteResult));
-                    _clientsSynchronizer.SynchronizeDeletingChat(chatReceiveModelDelete);
+
+                    if (chatDeleteResult.OperationResult == OperationsResults.Successfully)
+                        _clientsSynchronizer.SynchronizeDeletingChat(chatReceiveModelDelete);
                     break;
 
                 case ClientOperations.GetChats:
@@ -147,15 +165,23 @@ namespace ChatTCPServer.Services
                 case ClientOperations.UpdateMessage:
                     var messageReceiveModelUpdate = _serializer.Deserialize<MessageReceiveModel>(message.JsonData);
                     var updateMessageResult = _mainLogic.UpdateMessage(messageReceiveModelUpdate);
+
+                    if(updateMessageResult.JsonData != null)
+                    {
+                        var messageResponseModel = updateMessageResult.JsonData as MessageResponseModel;
+                        _clientsSynchronizer.SynchronizeChatsMessages(messageResponseModel);
+                        updateMessageResult.JsonData = _serializer.Serialize(messageResponseModel);
+                    }
                     _client.SendMessage(_serializer.Serialize(updateMessageResult));
-                    _clientsSynchronizer.SynchronizeChatsMessages(messageReceiveModelUpdate);
                     break;
 
                 case ClientOperations.DeleteMessage:
                     var messageReceiveModelDelete = _serializer.Deserialize<MessageReceiveModel>(message.JsonData);
                     var deleteMessageResult = _mainLogic.DeleteMessage(messageReceiveModelDelete);
                     _client.SendMessage(_serializer.Serialize(deleteMessageResult));
-                    _clientsSynchronizer.SynchronizeChatsDeletingMessages(messageReceiveModelDelete);
+
+                    if (deleteMessageResult.OperationResult == OperationsResults.Successfully)
+                        _clientsSynchronizer.SynchronizeChatsDeletingMessages(messageReceiveModelDelete);
                     break;
 
                 case ClientOperations.GetMessages:
@@ -174,7 +200,9 @@ namespace ChatTCPServer.Services
                     var friendReceiveModelDelete = _serializer.Deserialize<FriendReceiveModel>(message.JsonData);
                     var friendDeleteResult = _mainLogic.DeleteFriend(friendReceiveModelDelete);
                     _client.SendMessage(_serializer.Serialize(friendDeleteResult));
-                    _clientsSynchronizer.SynchronizeDeletingFriend(friendReceiveModelDelete);
+
+                    if(friendDeleteResult.OperationResult == OperationsResults.Successfully)
+                        _clientsSynchronizer.SynchronizeDeletingFriend(friendReceiveModelDelete);
                     break;
 
                 case ClientOperations.GetFriends:
@@ -188,7 +216,9 @@ namespace ChatTCPServer.Services
                     var notificationReceiveModelUpdate = _serializer.Deserialize<NotificationReceiveModel>(message.JsonData);
                     var notificationUpdateResult = _mainLogic.UpdateNotification(notificationReceiveModelUpdate);
                     _client.SendMessage(_serializer.Serialize(notificationUpdateResult));
-                    _clientsSynchronizer.SynchronizeAddingFriend(notificationReceiveModelUpdate);
+
+                    if(notificationUpdateResult.OperationResult == OperationsResults.Successfully)
+                        _clientsSynchronizer.SynchronizeAddingFriend(notificationReceiveModelUpdate);
                     break;
 
                 default:

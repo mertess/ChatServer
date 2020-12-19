@@ -275,7 +275,9 @@ namespace ChatTCPTestClient
                             var parameters10 = Console.ReadLine().Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
                             UpdateMessage(new MessageReceiveModel()
                             {
+                                //для получения списка пользователей чата при синхронизации
                                 ChatId = Convert.ToInt32(parameters10[0].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0]),
+                                //для того, чтобы исключить текущего пользователя из списка пользователей для синхронизации
                                 FromUserId = user.Id,
                                 Id = Convert.ToInt32(parameters10[0].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1]),
                                 UserMassage = parameters10[1]
@@ -284,11 +286,13 @@ namespace ChatTCPTestClient
                             break;
                         case "!delete_message":
                             Console.Clear();
-                            Console.WriteLine("paramenters: messageId");
-                            var messageId = Convert.ToInt32(Console.ReadLine());
+                            Console.WriteLine("paramenters: messageId, chatId");
+                            var parameters11 = Console.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                             DeleteMessage(new MessageReceiveModel()
                             {
-                                Id = messageId
+                                Id = Convert.ToInt32(parameters11[0]),
+                                ChatId = Convert.ToInt32(parameters11[1]),
+                                FromUserId = user.Id
                             });
                             Console.WriteLine();
                             break;
@@ -769,9 +773,12 @@ namespace ChatTCPTestClient
             Console.WriteLine("ChatId = " + data.ChatId);
             Console.WriteLine("Message = " + data.UserMassage);
 
-            var deletingMessage = messages[data.ChatId].FirstOrDefault(m => m.Id == data.Id);
-            if (deletingMessage != null)
-                messages[data.ChatId].Remove(deletingMessage);
+            if (messages.ContainsKey(data.ChatId))
+            {
+                var deletingMessage = messages[data.ChatId].FirstOrDefault(m => m.Id == data.Id);
+                if (deletingMessage != null)
+                    messages[data.ChatId].Remove(deletingMessage);
+            }
             Console.ForegroundColor = ConsoleColor.White;
         }
 

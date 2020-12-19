@@ -34,6 +34,7 @@ namespace ServerDatabaseSystem.Implementation
         /// Creating a new chat in Database and binding users with that chat  
         /// </summary>
         /// <param name="chatModel"><see cref="ChatReceiveModel"/></param>
+        /// <returns><see cref="ChatResponseModel"/></returns>
         public ChatResponseModel Create(ChatReceiveModel chatModel)
         {
             //TODO : review
@@ -192,7 +193,7 @@ namespace ServerDatabaseSystem.Implementation
         /// Updating chat in database, rebinding users 
         /// </summary>
         /// <param name="chatModel"><see cref="ChatReceiveModel"/></param>
-        public void Update(ChatReceiveModel chatModel)
+        public ChatResponseModel Update(ChatReceiveModel chatModel)
         {
             using (DatabaseContext context = new DatabaseContext())
             {
@@ -241,6 +242,18 @@ namespace ServerDatabaseSystem.Implementation
                         }
 
                         transaction.Commit();
+
+                        //getting its updated chat from database
+                        var updatedChat = context.Chats.FirstOrDefault(c => c.Id == chatModel.Id.Value);
+
+                        return new ChatResponseModel()
+                        {
+                            Id = updatedChat.Id,
+                            CreatorId = updatedChat.CreatorId,
+                            ChatName = updatedChat.ChatName,
+                            CountUsers = updatedChat.CountUsers,
+                            ChatUsers = GetChatUsers(updatedChat.Id)
+                        };
                     }
                     catch (Exception)
                     {
