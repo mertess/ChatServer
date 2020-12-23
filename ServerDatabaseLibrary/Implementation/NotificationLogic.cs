@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using ServerBusinessLogic.Interfaces.DataServices;
 using ServerBusinessLogic.ReceiveModels.NotificationModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
@@ -7,8 +6,6 @@ using ServerBusinessLogic.ResponseModels.NotificationModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -82,6 +79,7 @@ namespace ServerDatabaseSystem.Implementation
                     {
                         Id = n.Id,
                         Message = n.Message,
+                        FromUserId = n.FromUserId,
                         FromUserName = context.Users.FirstOrDefault(u => u.Id == n.FromUserId).UserName,
                         UserPicture = context.Users.FirstOrDefault(u => u.Id == n.FromUserId).Picture
                     })
@@ -118,8 +116,7 @@ namespace ServerDatabaseSystem.Implementation
             {
                 var notification = context.Notifications
                     .Include(n => n.FromUser)
-                    .FirstOrDefault(n => model.Id.HasValue && n.Id == model.Id.Value
-                || n.FromUserId == model.FromUserId && n.ToUserId == model.ToUserId);
+                    .FirstOrDefault(n => model.Id.HasValue && n.Id == model.Id.Value || n.FromUserId == model.FromUserId && n.ToUserId == model.ToUserId);
 
                 if (notification == null)
                     throw new Exception("Уведомление не найдено");
@@ -127,9 +124,9 @@ namespace ServerDatabaseSystem.Implementation
                 return new NotificationResponseModel()
                 {
                     Id = notification.Id,
+                    FromUserId = notification.FromUserId,
                     FromUserName = notification.FromUser.UserName,
                     Message = notification.Message,
-                    FromUserId = notification.FromUserId,
                     UserPicture = notification.FromUser.Picture
                 };
             }

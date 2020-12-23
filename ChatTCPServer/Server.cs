@@ -1,19 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using ServerDatabaseSystem.Implementation;
-using ServerBusinessLogic.TransmissionModels;
-using ServerDatabaseSystem.DbModels;
-using System.Runtime.CompilerServices;
-using ServerBusinessLogic.BusinessLogic;
-using ServerBusinessLogic.ReceiveModels;
-using ServerBusinessLogic.ReceiveModels.UserModels;
 
 namespace ChatTCPServer
 {
@@ -21,7 +10,7 @@ namespace ChatTCPServer
     {
         private readonly TcpListener tcpListener_;
         public List<Client> ConnectedClients { get; private set; }
-        
+
         public Server(string Address, int Port)
         {
             tcpListener_ = new TcpListener(IPAddress.Parse(Address), Port);
@@ -41,7 +30,8 @@ namespace ChatTCPServer
                     Thread thread = new Thread(() => client.Process());
                     thread.Start();
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }

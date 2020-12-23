@@ -1,17 +1,9 @@
 ﻿using ChatTCPServer.Services;
 using ServerBusinessLogic.BusinessLogic;
-using ServerBusinessLogic.Enums.Transmission;
-using ServerBusinessLogic.TransmissionModels;
-using ServerDatabaseSystem.DbModels;
 using ServerDatabaseSystem.Implementation;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ChatTCPServer
 {
@@ -28,7 +20,7 @@ namespace ChatTCPServer
             //wtf
             _requestHandler = new RequestHandler(
                 new Serializer(),
-                this, 
+                this,
                 new MainLogic(
                     new ChatLogic(),
                     new UserLogic(),
@@ -51,12 +43,12 @@ namespace ChatTCPServer
         {
             try
             {
-                while(true)
+                while (true)
                 {
                     ProcessClientOperation(GetMessage());
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(Id + " " + e.Message);
             }
@@ -67,7 +59,7 @@ namespace ChatTCPServer
         }
 
         private void ProcessClientOperation(string messageJson) => _requestHandler.HandleRequest(messageJson);
-       
+
         private string GetMessage()
         {
             byte[] data = new byte[256];
@@ -90,7 +82,7 @@ namespace ChatTCPServer
                 byte[] data = Encoding.UTF8.GetBytes(message);
                 _networkStream.Write(data, 0, data.Length);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(Id + ": " + ex.Message);
             }

@@ -1,18 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
-using ServerBusinessLogic.Interfaces.DataServices;
-using ServerBusinessLogic.ReceiveModels;
+﻿using ServerBusinessLogic.Interfaces.DataServices;
 using ServerBusinessLogic.ReceiveModels.UserModels;
-using ServerBusinessLogic.ResponseModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerDatabaseSystem.DbModels;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -50,7 +43,7 @@ namespace ServerDatabaseSystem.Implementation
         /// <param name="userModel"><see cref="UserReceiveModel"/></param>
         public void Delete(UserReceiveModel userModel)
         {
-            using(DatabaseContext context = new DatabaseContext())
+            using (DatabaseContext context = new DatabaseContext())
             {
                 User usr = context.Users.FirstOrDefault(u => u.Login.Equals(userModel.Login));
                 if (usr == null)
@@ -67,7 +60,7 @@ namespace ServerDatabaseSystem.Implementation
         /// <returns><see cref="UserResponseModel"/></returns>
         public UserResponseModel GetUser(UserReceiveModel user)
         {
-            using(var context = new DatabaseContext())
+            using (var context = new DatabaseContext())
             {
                 var userDb = context.Users.FirstOrDefault(u => user.Id.HasValue && u.Id == user.Id.Value
                 || u.Login.Equals(user.Login) && u.Password.Equals(user.Password));
@@ -98,7 +91,7 @@ namespace ServerDatabaseSystem.Implementation
         /// <returns><see cref="UserListResponseModel"/></returns>
         public List<UserListResponseModel> ReadPage(UserPaginationReceiveModel userModel)
         {
-            using(DatabaseContext context = new DatabaseContext())
+            using (DatabaseContext context = new DatabaseContext())
             {
                 return string.IsNullOrEmpty(userModel.SearchingUserName)
                     ? context.Users
@@ -107,7 +100,7 @@ namespace ServerDatabaseSystem.Implementation
                     .Take(10)
                     .Select(u => new UserListResponseModel()
                     {
-                        Id = u.Id,
+                        UserId = u.Id,
                         UserName = u.UserName,
                         Picture = u.Picture
                     })
@@ -120,7 +113,7 @@ namespace ServerDatabaseSystem.Implementation
                     .Take(10)
                     .Select(u => new UserListResponseModel()
                     {
-                        Id = u.Id,
+                        UserId = u.Id,
                         UserName = u.UserName,
                         Picture = u.Picture
                     })
@@ -134,7 +127,7 @@ namespace ServerDatabaseSystem.Implementation
         /// <param name="userModel"><see cref="UserReceiveModel"/></param>
         public void Update(UserReceiveModel userModel)
         {
-            using(DatabaseContext context = new DatabaseContext())
+            using (DatabaseContext context = new DatabaseContext())
             {
                 User usr = context.Users.FirstOrDefault(u => u.Login.Equals(userModel.Login));
                 if (usr == null)

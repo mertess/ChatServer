@@ -1,20 +1,14 @@
-﻿using ServerBusinessLogic.Interfaces.DataServices;
-using ServerDatabaseSystem.DbModels;
-using ServerBusinessLogic.ResponseModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using ServerDatabaseSystem.Services;
+﻿using Microsoft.EntityFrameworkCore;
+using ServerBusinessLogic.Interfaces.DataServices;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
-using Microsoft.EntityFrameworkCore.Storage;
+using ServerDatabaseSystem.DbModels;
+using ServerDatabaseSystem.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -38,15 +32,15 @@ namespace ServerDatabaseSystem.Implementation
         public ChatResponseModel Create(ChatReceiveModel chatModel)
         {
             //TODO : review
-            using(DatabaseContext context = new DatabaseContext())
+            using (DatabaseContext context = new DatabaseContext())
             {
                 context.Chats.Add(new Chat()
-                { 
+                {
                     ChatName = chatModel.ChatName,
                     CreatorId = chatModel.CreatorId,
                     DateOfCreation = chatModel.DateOfCreation,
                     IsPrivate = chatModel.ChatUsers.Count() == 2 ? true : false,
-                    CountUsers = chatModel.ChatUsers.Count() 
+                    CountUsers = chatModel.ChatUsers.Count()
                 });
                 context.SaveChanges();
 
@@ -97,7 +91,7 @@ namespace ServerDatabaseSystem.Implementation
 
                         transaction.Commit();
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                         transaction.Rollback();
                         throw;
@@ -159,7 +153,7 @@ namespace ServerDatabaseSystem.Implementation
         /// <returns>List of ChatResponceModel <see cref="ChatResponseModel"/></returns>
         public List<ChatResponseModel> ReadPage(UserPaginationReceiveModel userPagination)
         {
-            using(DatabaseContext context = new DatabaseContext())
+            using (DatabaseContext context = new DatabaseContext())
             {
                 return context.RelationChatUsers
                     .Where(rcu => rcu.UserId == userPagination.UserId)

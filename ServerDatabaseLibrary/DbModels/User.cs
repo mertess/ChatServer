@@ -1,11 +1,7 @@
 ﻿using ServerBusinessLogic.Enums;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ServerDatabaseSystem.DbModels
 {
@@ -27,7 +23,7 @@ namespace ServerDatabaseSystem.DbModels
 
         [Required]
         public string SecondName { get; set; }
-        
+
         public Gender? Gender { get; set; }
 
         public string PhoneNumber { get; set; }

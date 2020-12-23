@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ServerBusinessLogic.ResponseModels.ChatModels
+﻿namespace ServerBusinessLogic.ResponseModels.ChatModels
 {
     public class ChatUserResponseModel
     {

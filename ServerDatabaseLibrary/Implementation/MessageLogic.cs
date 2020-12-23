@@ -1,16 +1,11 @@
 ﻿using ServerBusinessLogic.Interfaces.DataServices;
+using ServerBusinessLogic.ReceiveModels.ChatModels;
+using ServerBusinessLogic.ReceiveModels.MessageModels;
+using ServerBusinessLogic.ResponseModels.MessageModels;
 using ServerDatabaseSystem.DbModels;
-using ServerBusinessLogic.ReceiveModels;
-using ServerBusinessLogic.ResponseModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ServerBusinessLogic.ReceiveModels.MessageModels;
-using ServerBusinessLogic.ReceiveModels.ChatModels;
-using ServerBusinessLogic.ResponseModels.MessageModels;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -108,7 +103,7 @@ namespace ServerDatabaseSystem.Implementation
         {
             using (var context = new DatabaseContext())
             {
-                if(message.Id.HasValue)
+                if (message.Id.HasValue)
                 {
                     var messageDb = context.Messages.FirstOrDefault(m => m.Id == message.Id.Value);
                     if (messageDb == null)

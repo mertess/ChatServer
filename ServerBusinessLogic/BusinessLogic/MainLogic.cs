@@ -1,25 +1,16 @@
-﻿using ServerBusinessLogic.Interfaces.DataServices;
+﻿using ServerBusinessLogic.Enums.Transmission;
+using ServerBusinessLogic.Interfaces.DataServices;
+using ServerBusinessLogic.ReceiveModels.ChatModels;
+using ServerBusinessLogic.ReceiveModels.FriendModels;
+using ServerBusinessLogic.ReceiveModels.MessageModels;
+using ServerBusinessLogic.ReceiveModels.NotificationModels;
+using ServerBusinessLogic.ReceiveModels.UserModels;
+using ServerBusinessLogic.ResponseModels.ChatModels;
+using ServerBusinessLogic.ResponseModels.NotificationModels;
+using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerBusinessLogic.TransmissionModels;
-using ServerBusinessLogic.Enums.Transmission;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ServerBusinessLogic.ReceiveModels;
-using ServerBusinessLogic.ReceiveModels.UserModels;
-using ServerBusinessLogic.ReceiveModels.ChatModels;
-using ServerBusinessLogic.ReceiveModels.MessageModels;
-using System.Runtime.CompilerServices;
-using ServerBusinessLogic.ResponseModels.MessageModels;
-using ServerBusinessLogic.ResponseModels.ChatModels;
-using ServerBusinessLogic.ResponseModels.UserModels;
-using ServerBusinessLogic.Interfaces;
-using System.Diagnostics;
-using ServerBusinessLogic.ReceiveModels.FriendModels;
-using System.Net.Http.Headers;
-using ServerBusinessLogic.ReceiveModels.NotificationModels;
-using ServerBusinessLogic.ResponseModels.NotificationModels;
 
 namespace ServerBusinessLogic.BusinessLogic
 {
@@ -58,7 +49,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     OperationResult = OperationsResults.Successfully
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return new OperationResultInfo()
@@ -84,7 +75,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     JsonData = user
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new OperationResultInfo()
                 {
@@ -106,7 +97,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     OperationResult = OperationsResults.Successfully
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new OperationResultInfo()
                 {
@@ -130,7 +121,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     JsonData = users
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new OperationResultInfo()
                 {
@@ -141,20 +132,34 @@ namespace ServerBusinessLogic.BusinessLogic
             }
         }
 
-        public UserResponseModel GetUser(UserReceiveModel userModel)
+        public OperationResultInfo GetUser(UserReceiveModel userModel)
         {
             try
             {
-                return _userLogic.GetUser(userModel);
+                var user =  _userLogic.GetUser(userModel);
+
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.UserInfoListener,
+                    JsonData = user
+                };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return null;
+
+                return new OperationResultInfo()
+                {
+                    ErrorInfo = ex.Message,
+                    OperationResult = OperationsResults.Unsuccessfully,
+                    ToListener = ListenerType.UserInfoListener
+                };
             }
         }
 
-        
+
         #endregion
         #region ChatLogicOperations
 
@@ -171,7 +176,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     JsonData = chatResponseModelResult
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return new OperationResultInfo()
@@ -196,7 +201,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     JsonData = updatedChat
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return new OperationResultInfo()
@@ -220,7 +225,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     OperationResult = OperationsResults.Successfully
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return new OperationResultInfo()
@@ -240,7 +245,7 @@ namespace ServerBusinessLogic.BusinessLogic
             {
                 return _chatLogic.GetChat(model);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return null;
@@ -260,7 +265,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     ToListener = ListenerType.ChatListListener
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new OperationResultInfo()
                 {
@@ -288,7 +293,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     JsonData = callBackMessage
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new OperationResultInfo()
                 {
@@ -311,7 +316,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     ToListener = ListenerType.ChatsMessagesDeleteListener
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new OperationResultInfo()
                 {
@@ -386,7 +391,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     ToListener = ListenerType.FriendListListener
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new OperationResultInfo()
                 {
@@ -410,7 +415,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     ToListener = ListenerType.FriendListDeleteListener
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new OperationResultInfo()
                 {
@@ -435,7 +440,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     JsonData = friends
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new OperationResultInfo()
                 {
@@ -462,7 +467,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     ToListener = ListenerType.NotificationListListener
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new OperationResultInfo()
                 {
@@ -479,7 +484,7 @@ namespace ServerBusinessLogic.BusinessLogic
             {
                 _notificationLogic.Delete(notification);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
@@ -498,7 +503,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     ToListener = ListenerType.NotificationListListener
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new OperationResultInfo()
                 {
@@ -523,7 +528,7 @@ namespace ServerBusinessLogic.BusinessLogic
                     JsonData = notifications
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new OperationResultInfo()
                 {
@@ -540,7 +545,7 @@ namespace ServerBusinessLogic.BusinessLogic
             {
                 return _notificationLogic.GetNotification(notification);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return null;
