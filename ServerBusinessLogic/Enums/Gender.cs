@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ServerBusinessLogic.Enums
+﻿namespace ServerBusinessLogic.Enums
 {
     public enum Gender
     {
-        Male, 
+        Male,
         Female,
         CombatHelicopter
     }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-
-namespace ServerBusinessLogic.ReceiveModels.ChatModels
+﻿namespace ServerBusinessLogic.ReceiveModels.ChatModels
 {
     public class ChatPaginationReceiveModel
     {

@@ -1,4 +1,5 @@
-﻿using ServerBusinessLogic.BusinessLogic;
+﻿using Microsoft.Extensions.Options;
+using ServerBusinessLogic.BusinessLogic;
 using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.Interfaces;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
@@ -8,8 +9,10 @@ using ServerBusinessLogic.ReceiveModels.NotificationModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
 using ServerBusinessLogic.ResponseModels.MessageModels;
+using ServerBusinessLogic.ResponseModels.NotificationModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerBusinessLogic.TransmissionModels;
+using ServerDatabaseSystem.DbModels;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -82,7 +85,7 @@ namespace ChatTCPServer.Services
                     ErrorInfo = string.Empty,
                     ToListener = ListenerType.ChatsMessagesDeleteListener,
                     OperationResult = OperationsResults.Successfully,
-                    JsonData = _serializer.Serialize(new MessageResponseModel() 
+                    JsonData = _serializer.Serialize(new MessageResponseModel()
                     {
                         Id = message.Id.Value,
                         ChatId = message.ChatId
@@ -135,7 +138,7 @@ namespace ChatTCPServer.Services
             //send responses for deleted users from chat
             Parallel.ForEach(deletedOnlineChatUsers, (cu) => cu.SendMessage(responseForDeletedUsersJson));
 
-            var onlineChatUsers = _connectedClients.Where(cc => cc.Id != chatResponseModelAfterUpdate.CreatorId 
+            var onlineChatUsers = _connectedClients.Where(cc => cc.Id != chatResponseModelAfterUpdate.CreatorId
                 && chatResponseModelAfterUpdate.ChatUsers.FirstOrDefault(cu => cu.Id == cc.Id) != null);
 
             responseForDeletedUsers.ToListener = ListenerType.ChatListListener;
@@ -159,7 +162,7 @@ namespace ChatTCPServer.Services
                 {
                     ErrorInfo = string.Empty,
                     OperationResult = OperationsResults.Successfully,
-                    JsonData = _serializer.Serialize(chatReceiveModel),
+                    JsonData = _serializer.Serialize(new ChatResponseModel() { Id = chatReceiveModel.Id.Value }),
                     ToListener = ListenerType.ChatListDeleteListener
                 });
 
@@ -178,15 +181,13 @@ namespace ChatTCPServer.Services
                 ToUserId = friendReceiveModel.FriendId
             };
 
-            var notificationDb = _mainLogic.GetNotification(notification);
-
-            if (notificationDb == null)
+            if (_mainLogic.GetNotification(notification) == null)
             {
                 notification.IsAccepted = false;
-                notification.Message = $"Пользователь {_mainLogic.GetUser(new UserReceiveModel() { Id = notification.FromUserId }).UserName} хочет добавить вас в друзья";
+                notification.Message = "Пользователь " +
+                    $"{(_mainLogic.GetUser(new UserReceiveModel() { Id = notification.FromUserId }).JsonData as UserResponseModel).UserName}" +
+                    " хочет добавить вас в друзья";
                 _mainLogic.AddNotification(notification);
-
-                notificationDb = _mainLogic.GetNotification(notification);
 
                 var endClient = _connectedClients.FirstOrDefault(c => c.Id == notification.ToUserId);
 
@@ -194,6 +195,8 @@ namespace ChatTCPServer.Services
                 {
                     Task.Run(() =>
                     {
+                        var notificationDb = _mainLogic.GetNotification(notification);
+
                         endClient.SendMessage(_serializer.Serialize(new OperationResultInfo()
                         {
                             ErrorInfo = string.Empty,
@@ -220,14 +223,8 @@ namespace ChatTCPServer.Services
                     FriendId = notificationReceiveModel.ToUserId
                 });
 
-                _mainLogic.AddFriend(new FriendReceiveModel()
-                {
-                    UserId = notificationReceiveModel.ToUserId,
-                    FriendId = notificationReceiveModel.FromUserId
-                });
-
-                var user1 = _mainLogic.GetUser(new UserReceiveModel() { Id = notificationReceiveModel.FromUserId });
-                var user2 = _mainLogic.GetUser(new UserReceiveModel() { Id = notificationReceiveModel.ToUserId });
+                var user1 = _mainLogic.GetUser(new UserReceiveModel() { Id = notificationReceiveModel.FromUserId })?.JsonData as UserResponseModel;
+                var user2 = _mainLogic.GetUser(new UserReceiveModel() { Id = notificationReceiveModel.ToUserId })?.JsonData as UserResponseModel;
 
                 if (user1 != null)
                 {
@@ -243,7 +240,7 @@ namespace ChatTCPServer.Services
                                 ToListener = ListenerType.FriendListListener,
                                 JsonData = _serializer.Serialize(new UserListResponseModel()
                                 {
-                                    Id = user2.Id,
+                                    UserId = user2.Id,
                                     UserName = user2.UserName,
                                     Picture = user2.Picture
                                 })
@@ -266,7 +263,7 @@ namespace ChatTCPServer.Services
                                 ToListener = ListenerType.FriendListListener,
                                 JsonData = _serializer.Serialize(new UserListResponseModel()
                                 {
-                                    Id = user1.Id,
+                                    UserId = user1.Id,
                                     UserName = user1.UserName,
                                     Picture = user1.Picture
                                 })
@@ -274,16 +271,38 @@ namespace ChatTCPServer.Services
                         });
                     }
                 }
+
+                _mainLogic.DeleteNotification(notificationReceiveModel);
             }
         }
 
+        /// <summary>
+        /// Synchronization deleting friend
+        /// </summary>
+        /// <param name="friendReceiveModel"></param>
         public void SynchronizeDeletingFriend(FriendReceiveModel friendReceiveModel)
         {
+            var onlineFriend = _connectedClients.FirstOrDefault(cc => cc.Id == friendReceiveModel.FriendId);
 
+            if(onlineFriend != null)
+            {
+                Task.Run(() =>
+                {
+                    var responseJson = _serializer.Serialize(new OperationResultInfo()
+                    {
+                        ErrorInfo = string.Empty,
+                        OperationResult = OperationsResults.Successfully,
+                        ToListener = ListenerType.FriendListDeleteListener,
+                        JsonData = _serializer.Serialize(new UserListResponseModel(){ UserId = friendReceiveModel.UserId })
+                    });
+
+                    onlineFriend.SendMessage(responseJson);
+                });
+            }
         }
 
         /// <summary>
-        /// Syncronization user online status
+        /// Synchronization user online status
         /// </summary>
         public void SynchronizeOnlineStatus()
         {

@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
-using ServerBusinessLogic.Interfaces.DataServices;
+﻿using ServerBusinessLogic.Interfaces.DataServices;
 using ServerBusinessLogic.ReceiveModels.FriendModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
@@ -7,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -27,11 +25,18 @@ namespace ServerDatabaseSystem.Implementation
                 if (context.Friends.FirstOrDefault(f => f.UserId == model.UserId && f.FriendId == model.FriendId) != null)
                     throw new Exception("Данный пользователь уже находится у вас в друзьях");
 
-                context.Friends.Add(new DbModels.Friend()
-                {
-                    UserId = model.UserId,
-                    FriendId = model.FriendId
-                });
+                context.Friends.AddRange(
+                    new DbModels.Friend()
+                    {
+                        UserId = model.UserId,
+                        FriendId = model.FriendId
+                    }, 
+                    new DbModels.Friend()
+                    {
+                        UserId = model.FriendId,
+                        FriendId = model.UserId
+                    });
+
                 context.SaveChanges();
             }
         }
@@ -48,7 +53,11 @@ namespace ServerDatabaseSystem.Implementation
                 if (friend == null)
                     throw new Exception("Пользователь не найден у вас в друзьях");
 
-                context.Friends.Remove(friend);
+                //unbinding current user with his friend 
+                context.Friends.RemoveRange(
+                        friend, 
+                        context.Friends.FirstOrDefault(f => f.UserId == model.FriendId && f.FriendId == model.UserId)
+                        );
                 context.SaveChanges();
             }
         }
@@ -71,7 +80,7 @@ namespace ServerDatabaseSystem.Implementation
                     .Select(f => context.Users.FirstOrDefault(u => u.Id == f.FriendId))
                     .Select(u => new UserListResponseModel()
                     {
-                        Id = u.Id,
+                        UserId = u.Id,
                         UserName = u.UserName,
                         Picture = u.Picture
                     })
@@ -86,7 +95,7 @@ namespace ServerDatabaseSystem.Implementation
                     .Take(10)
                     .Select(u => new UserListResponseModel()
                     {
-                        Id = u.Id,
+                        UserId = u.Id,
                         UserName = u.UserName,
                         Picture = u.Picture
                     })

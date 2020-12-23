@@ -1,9 +1,7 @@
 ﻿using ServerBusinessLogic.ReceiveModels.NotificationModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.NotificationModels;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ServerBusinessLogic.Interfaces.DataServices
 {

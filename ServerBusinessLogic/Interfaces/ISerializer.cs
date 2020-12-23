@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ServerBusinessLogic.Interfaces
+﻿namespace ServerBusinessLogic.Interfaces
 {
     public interface ISerializer
     {

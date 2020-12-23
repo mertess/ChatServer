@@ -65,6 +65,7 @@ namespace ChatTCPTestClient
                 DataManager.AddListener(ListenerType.FriendListListener, FriendsListListener);
                 DataManager.AddListener(ListenerType.FriendListDeleteListener, FriendsDeleteListListener);
                 DataManager.AddListener(ListenerType.NotificationListListener, NotificationListListener);
+                DataManager.AddListener(ListenerType.UserInfoListener, UserInfoListener);
 
                 Task.Run(() => RecieveMessages());
              
@@ -296,6 +297,26 @@ namespace ChatTCPTestClient
                             });
                             Console.WriteLine();
                             break;
+                        case "!delete_friend":
+                            Console.Clear();
+                            Console.WriteLine("parameters: friend id");
+                            var friendId = Convert.ToInt32(Console.ReadLine());
+                            DeleteFriend(new FriendReceiveModel()
+                            {
+                                UserId = user.Id,
+                                FriendId = friendId
+                            });
+                            break;
+                        case "!get_user":
+                            Console.Clear();
+                            Console.WriteLine("parameters: user id");
+                            var userInfoId = Convert.ToInt32(Console.ReadLine());
+                            GetUser(new UserReceiveModel()
+                            {
+                                Id = userInfoId
+                            });
+                            Console.WriteLine();
+                            break;
                         case "!help":
                             Console.Clear();
                             Console.WriteLine("All commands:");
@@ -307,15 +328,17 @@ namespace ChatTCPTestClient
                             Console.WriteLine("update_chat +");
                             Console.WriteLine("delete_chat +");
                             Console.WriteLine("get_chats +");
-                            Console.WriteLine("send_invite + but uncorrect alg");
+                            Console.WriteLine("send_invite +");
                             Console.WriteLine("get_friends +");
                             Console.WriteLine("update_notification +");
-                            Console.WriteLine("get_notifications - not impl");
+                            Console.WriteLine("get_notifications +");
                             Console.WriteLine("send_message +");
                             Console.WriteLine("get_messages +");
                             Console.WriteLine("show_messages");
                             Console.WriteLine("update_message +");
-                            Console.WriteLine("delete_message +- don't work sync");
+                            Console.WriteLine("delete_message +");
+                            Console.WriteLine("delete_friend +");
+                            Console.WriteLine("get_user -");
                             Console.WriteLine("show_users");
                             Console.WriteLine("show_chats");
                             Console.WriteLine("show_chat_info");
@@ -328,7 +351,7 @@ namespace ChatTCPTestClient
                             Console.WriteLine("users: ");
                             Console.ForegroundColor = ConsoleColor.Green;
                             for(int i = 0; i < users.Count(); i++)
-                                Console.WriteLine($"#{i} user id: {users[i].Id} username: {users[i].UserName}");
+                                Console.WriteLine($"#{i} user id: {users[i].UserId} username: {users[i].UserName}");
                             Console.ForegroundColor = ConsoleColor.White;
                             Console.WriteLine();
                             break;
@@ -359,7 +382,7 @@ namespace ChatTCPTestClient
                             Console.WriteLine("Your friends:");
                             Console.ForegroundColor = ConsoleColor.Green;
                             for (int i = 0; i < friends.Count(); i++)
-                                Console.WriteLine($"#{i}, friendId : {friends[i].Id}, username : {friends[i].UserName}");
+                                Console.WriteLine($"#{i}, friendId : {friends[i].UserId}, username : {friends[i].UserName}");
                             Console.ForegroundColor = ConsoleColor.White;
                             Console.WriteLine();
                             break;
@@ -443,6 +466,16 @@ namespace ChatTCPTestClient
                 JsonData = serializer.Serialize(userPaginationReceiveModel)
             });
         }
+
+        static void GetUser(UserReceiveModel userReceiveModel)
+        {
+            SendMessage(new ClientOperationMessage()
+            {
+                Operation = ClientOperations.GetUser,
+                JsonData = serializer.Serialize(userReceiveModel)
+            });
+        }
+
         #endregion
         #region messages 
         static void GetMessages(ChatPaginationReceiveModel chatPaginationReceiveModel)
@@ -543,7 +576,6 @@ namespace ChatTCPTestClient
             });
         }
 
-        //not implemented 
         static void DeleteFriend(FriendReceiveModel friendReceiveModel)
         {
             SendMessage(new ClientOperationMessage()
@@ -563,7 +595,6 @@ namespace ChatTCPTestClient
             });
         }
 
-        //not implemented 
         static void GetNotifications(UserPaginationReceiveModel userPaginationReceiveModel)
         {
             SendMessage(new ClientOperationMessage()
@@ -792,11 +823,29 @@ namespace ChatTCPTestClient
             Console.WriteLine("--Users received by user action : ");
             foreach (var user in data)
             {
-                Console.WriteLine("UserId = " + user.Id);
+                Console.WriteLine("UserId = " + user.UserId);
                 Console.WriteLine("Username = " + user.UserName);
             }
 
             users = data;
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        static void UserInfoListener(OperationResultInfo operationResultInfo)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
+            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
+            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+            var data = serializer.Deserialize<UserResponseModel>(operationResultInfo.JsonData as string);
+            Console.WriteLine();
+            Console.WriteLine("--User received by user action : ");
+            Console.WriteLine("user id = " + data.Id);
+            Console.WriteLine("username = " + data.UserName);
+            Console.WriteLine("name = " + data.Name);
+            Console.WriteLine("second name = " + data.SecondName);
+            Console.WriteLine("phone = " + data.PhoneNumber);
+            Console.WriteLine("is online = " + data.IsOnline);
             Console.ForegroundColor = ConsoleColor.White;
         }
 
@@ -813,7 +862,7 @@ namespace ChatTCPTestClient
                     Console.WriteLine("Friend received by server synchronization, he accepted invite : ");
                     var data = serializer.Deserialize<UserListResponseModel>(operationResultInfo.JsonData as string);
                     friends.Add(data);
-                    Console.WriteLine("User Id = " + data.Id);
+                    Console.WriteLine("User Id = " + data.UserId);
                     Console.WriteLine("Username = " + data.UserName);
                 }
                 else
@@ -826,7 +875,7 @@ namespace ChatTCPTestClient
                 Console.WriteLine("--Friends received by user action : ");
                 foreach (var user in data)
                 {
-                    Console.WriteLine("UserId = " + user.Id);
+                    Console.WriteLine("UserId = " + user.UserId);
                     Console.WriteLine("Username = " + user.UserName);
                 }
             }
@@ -841,8 +890,10 @@ namespace ChatTCPTestClient
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
             var data = serializer.Deserialize<UserListResponseModel>(operationResultInfo.JsonData as string);
             Console.WriteLine("--Friend for deleting received by synchronization from server : ");
-            Console.WriteLine("UserId = " + data.Id);
+            Console.WriteLine("UserId = " + data.UserId);
             Console.WriteLine("Username = " + data.UserName);
+
+            friends.Remove(friends.FirstOrDefault(f => f.UserId == data.UserId));
             Console.ForegroundColor = ConsoleColor.White;
         }
 
@@ -860,6 +911,7 @@ namespace ChatTCPTestClient
                     var data = serializer.Deserialize<NotificationResponseModel>(operationResultInfo.JsonData as string);
                     Console.WriteLine("NotificationId = " + data.Id);
                     Console.WriteLine("FromUser = " + data.FromUserName);
+                    Console.WriteLine("FromUserId = " + data.FromUserId);
                     Console.WriteLine("NotificationMessage = " + data.Message);
 
                     notifications.Add(data);
