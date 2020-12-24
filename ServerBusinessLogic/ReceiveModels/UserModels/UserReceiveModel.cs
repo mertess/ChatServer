@@ -16,13 +16,13 @@ namespace ServerBusinessLogic.ReceiveModels.UserModels
 
         public string SecondName { get; set; }
 
-        public Gender Gender { get; set; }
+        public Gender? Gender { get; set; }
 
         public string PhoneNumber { get; set; }
 
-        public Country Country { get; set; }
+        public Country? Country { get; set; }
 
-        public City City { get; set; }
+        public City? City { get; set; }
 
         public byte[] Picture { get; set; }
 
