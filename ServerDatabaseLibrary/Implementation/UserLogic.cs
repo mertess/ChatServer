@@ -31,7 +31,6 @@ namespace ServerDatabaseSystem.Implementation
                     SecondName = userModel.SecondName,
                     Login = userModel.Login,
                     Password = userModel.Password
-                    //Picture = new byte[10]
                 });
                 context.SaveChanges();
             }
@@ -129,18 +128,23 @@ namespace ServerDatabaseSystem.Implementation
         {
             using (DatabaseContext context = new DatabaseContext())
             {
-                User usr = context.Users.FirstOrDefault(u => u.Login.Equals(userModel.Login));
+                if (!userModel.Id.HasValue)
+                    throw new Exception("Ошибка передачи данных, поле Id модели не было установлено");
+
+                User usr = context.Users.FirstOrDefault(u => u.Id == userModel.Id.Value);
                 if (usr == null)
                     throw new Exception("Такого пользователя нет в БД");
 
-                usr.Login = userModel.Login;
+
                 usr.Password = userModel.Password;
                 usr.UserName = userModel.UserName;
                 usr.Picture = userModel.Picture;
                 usr.PhoneNumber = userModel.PhoneNumber;
+                usr.Name = userModel.Name;
                 usr.SecondName = userModel.SecondName;
                 usr.Country = userModel.Country;
                 usr.Gender = userModel.Gender;
+                usr.City = userModel.City;
 
                 context.SaveChanges();
             }

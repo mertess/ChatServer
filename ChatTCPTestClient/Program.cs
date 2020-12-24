@@ -102,26 +102,22 @@ namespace ChatTCPTestClient
                             break;
                         case "!update_profile":
                             Console.Clear();
-                            Console.WriteLine("parameters: username, login, password, name, secondname, gender, phonenumber, country, city");
-                            var parameters2 = Console.ReadLine();
+                            Console.WriteLine("parameters: username, password, name, secondname, gender, phonenumber, country, city");
+                            var parameters2 = Console.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                             UpdateProfile(new UserReceiveModel()
                             {
                                 Id = user.Id,
-                                UserName = parameters2.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0],
-                                Login = parameters2.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1],
-                                Password = parameters2.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2],
-                                Name = parameters2.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[3],
-                                SecondName = parameters2.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[4],
-                                Gender = (Gender)Enum.GetValues(typeof(Gender)).GetValue(Convert.ToInt32(parameters2.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[5])),
-                                PhoneNumber = parameters2.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[6],
-                                Country = (Country)Enum.GetValues(typeof(Country)).GetValue(Convert.ToInt32(parameters2.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[7])),
-                                City = (City)Enum.GetValues(typeof(City)).GetValue(Convert.ToInt32(parameters2.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[8]))
+                                UserName = parameters2[0],
+                                Password = parameters2[1],
+                                Name = parameters2[2],
+                                SecondName = parameters2[3],
+                                Gender = (Gender)Enum.GetValues(typeof(Gender)).GetValue(Convert.ToInt32(parameters2[4])),
+                                PhoneNumber = parameters2[5],
+                                Country = (Country)Enum.GetValues(typeof(Country)).GetValue(Convert.ToInt32(parameters2[6])),
+                                City = (City)Enum.GetValues(typeof(City)).GetValue(Convert.ToInt32(parameters2[7]))
                             });
                             Console.WriteLine();
                             break;
-                            //TODO : установка ChatId на сервере, а так же возврат полной модели с сервера, а не только Id чата
-                            //TODO : exception - чат не найден в базе данных, но при этом происходит успешная синхронизация других пользователей 
-                            //но создателя не связывает - количество пользователей 2.
                         case "!create_chat":
                             Console.Clear();
                             Console.WriteLine("parameters: chatname : chat users id...");
@@ -646,8 +642,18 @@ namespace ChatTCPTestClient
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
             user = serializer.Deserialize<UserResponseModel>(operationResultInfo.JsonData as string);
-            Console.WriteLine("UserId = " + user?.Id);
-            Console.WriteLine("UserName = " + user?.UserName);
+            if (user != null)
+            {
+                Console.WriteLine("UserId = " + user.Id);
+                Console.WriteLine("UserName = " + user.UserName);
+                Console.WriteLine("Name = " + user.Name);
+                Console.WriteLine("Second name = " + user.SecondName);
+                Console.WriteLine("Phone  = " + user.PhoneNumber);
+                Console.WriteLine("Gender = " + Enum.GetName(typeof(Gender), user.Gender));
+                Console.WriteLine("City = " + Enum.GetName(typeof(City), user.City));
+                Console.WriteLine("Country = " + Enum.GetName(typeof(Country), user.Country));
+                Console.WriteLine("IsOnline = " + user.IsOnline);
+            }
             Console.ForegroundColor = ConsoleColor.White;
         }
 
@@ -845,6 +851,9 @@ namespace ChatTCPTestClient
             Console.WriteLine("name = " + data.Name);
             Console.WriteLine("second name = " + data.SecondName);
             Console.WriteLine("phone = " + data.PhoneNumber);
+            Console.WriteLine("gender = " + Enum.GetName(typeof(Gender), data.Gender));
+            Console.WriteLine("city = " + Enum.GetName(typeof(City), data.City));
+            Console.WriteLine("country = " + Enum.GetName(typeof(Country), data.Country));
             Console.WriteLine("is online = " + data.IsOnline);
             Console.ForegroundColor = ConsoleColor.White;
         }
