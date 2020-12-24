@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ServerDatabaseLibrary.DbModels;
 using ServerDatabaseSystem.DbModels;
 
 namespace ServerDatabaseSystem
@@ -16,6 +17,7 @@ namespace ServerDatabaseSystem
             base.OnConfiguring(optionsBuilder);
         }
 
+        public virtual DbSet<File> Files { get; set; }
         public virtual DbSet<Chat> Chats { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<RelationChatUser> RelationChatUsers { get; set; }

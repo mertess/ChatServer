@@ -1,4 +1,6 @@
-﻿namespace ServerBusinessLogic.ResponseModels.UserModels
+﻿using ServerBusinessLogic.Models;
+
+namespace ServerBusinessLogic.ResponseModels.UserModels
 {
     public class UserListResponseModel
     {
@@ -6,6 +8,6 @@
 
         public string UserName { get; set; }
 
-        public byte[] Picture { get; set; }
+        public FileModel Picture { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ServerBusinessLogic.Enums;
+using ServerDatabaseLibrary.DbModels;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -32,8 +33,9 @@ namespace ServerDatabaseSystem.DbModels
 
         public City? City { get; set; }
 
-        //[Required]
-        public byte[] Picture { get; set; }
+        public int FileId { get; set; }
+
+        public File File { get; set; }
 
         public bool IsOnline { get; set; }
 

@@ -1,4 +1,6 @@
-﻿namespace ServerBusinessLogic.ResponseModels.NotificationModels
+﻿using ServerBusinessLogic.Models;
+
+namespace ServerBusinessLogic.ResponseModels.NotificationModels
 {
     public class NotificationResponseModel
     {
@@ -10,6 +12,6 @@
 
         public string FromUserName { get; set; }
 
-        public byte[] UserPicture { get; set; }
+        public FileModel UserPicture { get; set; }
     }
 }

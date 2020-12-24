@@ -1,10 +1,13 @@
-﻿using ServerBusinessLogic.Interfaces.DataServices;
+﻿using Microsoft.EntityFrameworkCore;
+using ServerBusinessLogic.Interfaces.DataServices;
+using ServerBusinessLogic.Models;
 using ServerBusinessLogic.ReceiveModels.FriendModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 
 namespace ServerDatabaseSystem.Implementation
@@ -78,17 +81,25 @@ namespace ServerDatabaseSystem.Implementation
                     .Take(10)
                     //danger
                     .Select(f => context.Users.FirstOrDefault(u => u.Id == f.FriendId))
+                    .Include(u => u.File)
                     .Select(u => new UserListResponseModel()
                     {
                         UserId = u.Id,
                         UserName = u.UserName,
-                        Picture = u.Picture
+                        Picture = new FileModel()
+                        {
+                            Id = u.File.Id,
+                            FileName = u.File.FileName,
+                            Extension = u.File.Extension,
+                            BinaryForm = u.File.BinaryForm
+                        }
                     })
                     .ToList()
                     :
                     context.Friends
                     .Where(f => f.UserId == model.UserId)
                     .Select(f => context.Users.FirstOrDefault(u => u.Id == f.FriendId))
+                    .Include(u => u.File)
                     .ToList()
                     .Where(u => u.UserName.StartsWith(model.SearchingUserName, true, CultureInfo.InvariantCulture))
                     .Skip(model.Page * 10)
@@ -97,7 +108,13 @@ namespace ServerDatabaseSystem.Implementation
                     {
                         UserId = u.Id,
                         UserName = u.UserName,
-                        Picture = u.Picture
+                        Picture = new FileModel()
+                        {
+                            Id = u.File.Id,
+                            FileName = u.File.FileName,
+                            Extension = u.File.Extension,
+                            BinaryForm = u.File.BinaryForm
+                        }
                     })
                     .ToList();
             }

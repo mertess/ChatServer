@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServerBusinessLogic.Interfaces.DataServices;
+using ServerBusinessLogic.Models;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
@@ -9,6 +10,7 @@ using ServerDatabaseSystem.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -135,11 +137,18 @@ namespace ServerDatabaseSystem.Implementation
                 return context.RelationChatUsers
                     .Where(rcu => rcu.ChatId == chatId)
                     .Include(rcu => rcu.User)
+                    .Include(rcu => rcu.User.File)
                     .Select(rcu => new ChatUserResponseModel()
                     {
                         Id = rcu.UserId,
                         UserName = rcu.User.UserName,
-                        Picture = rcu.User.Picture,
+                        Picture = new FileModel()
+                        {
+                            Id = rcu.User.File.Id,
+                            FileName = rcu.User.File.FileName,
+                            Extension = rcu.User.File.Extension,
+                            BinaryForm = rcu.User.File.BinaryForm
+                        },
                         IsOnline = rcu.User.IsOnline
                     })
                     .ToList();
@@ -169,11 +178,18 @@ namespace ServerDatabaseSystem.Implementation
                         ChatUsers = context.RelationChatUsers
                             .Where(rcu => rcu.ChatId == chat.Id)
                             .Include(rcu => rcu.User)
+                            .Include(rcu => rcu.User.File)
                             .Select(rcu => new ChatUserResponseModel()
                             {
                                 Id = rcu.User.Id,
                                 UserName = rcu.User.UserName,
-                                Picture = rcu.User.Picture,
+                                Picture = new FileModel() 
+                                {
+                                    Id = rcu.User.File.Id,
+                                    FileName = rcu.User.File.FileName,
+                                    BinaryForm = rcu.User.File.BinaryForm,
+                                    Extension = rcu.User.File.Extension
+                                },
                                 IsOnline = rcu.User.IsOnline
                             })
                             .ToList(),

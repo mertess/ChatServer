@@ -1,4 +1,6 @@
 ﻿using ServerBusinessLogic.Enums;
+using ServerBusinessLogic.Models;
+using System.IO;
 
 namespace ServerBusinessLogic.ReceiveModels.UserModels
 {
@@ -24,7 +26,7 @@ namespace ServerBusinessLogic.ReceiveModels.UserModels
 
         public City? City { get; set; }
 
-        public byte[] Picture { get; set; }
+        public FileModel File { get; set; }
 
         public bool IsOnline { get; set; }
     }

@@ -162,6 +162,7 @@
   <ItemGroup>
     <Compile Include="DatabaseContext.cs" />
     <Compile Include="DbModels\Chat.cs" />
+    <Compile Include="DbModels\File.cs" />
     <Compile Include="DbModels\Friend.cs" />
     <Compile Include="DbModels\Message.cs" />
     <Compile Include="DbModels\Notification.cs" />

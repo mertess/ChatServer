@@ -1,4 +1,6 @@
-﻿using ServerBusinessLogic.Interfaces.DataServices;
+﻿using Microsoft.EntityFrameworkCore;
+using ServerBusinessLogic.Interfaces.DataServices;
+using ServerBusinessLogic.Models;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerDatabaseSystem.DbModels;
@@ -6,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -24,13 +27,26 @@ namespace ServerDatabaseSystem.Implementation
             {
                 if (context.Users.FirstOrDefault(u => u.Login.Equals(userModel.Login)) != null)
                     throw new Exception("Этот логин уже зарегистрирован!");
+
+                userModel.File.FileName = Guid.NewGuid().ToString();
+
+                context.Files.Add(new ServerDatabaseLibrary.DbModels.File()
+                {
+                    FileName = userModel.File.FileName,
+                    BinaryForm = new byte[10],
+                    Extension = userModel.File.Extension
+                });
+
+                var addedFile = context.Files.FirstOrDefault(f => f.FileName.Equals(userModel.File.FileName));
+
                 context.Users.Add(new User()
                 {
                     UserName = userModel.UserName,
                     Name = userModel.Name,
                     SecondName = userModel.SecondName,
                     Login = userModel.Login,
-                    Password = userModel.Password
+                    Password = userModel.Password,
+                    FileId = addedFile.Id
                 });
                 context.SaveChanges();
             }
@@ -61,7 +77,9 @@ namespace ServerDatabaseSystem.Implementation
         {
             using (var context = new DatabaseContext())
             {
-                var userDb = context.Users.FirstOrDefault(u => user.Id.HasValue && u.Id == user.Id.Value
+                var userDb = context.Users
+                    .Include(u => u.File)
+                    .FirstOrDefault(u => user.Id.HasValue && u.Id == user.Id.Value
                 || u.Login.Equals(user.Login) && u.Password.Equals(user.Password));
 
                 if (userDb == null)
@@ -78,7 +96,13 @@ namespace ServerDatabaseSystem.Implementation
                     City = userDb.City ?? default,
                     IsOnline = userDb.IsOnline,
                     PhoneNumber = userDb.PhoneNumber,
-                    Picture = userDb.Picture
+                    File = new FileModel()
+                    {
+                        Id = userDb.File.Id,
+                        FileName = userDb.File.FileName,
+                        Extension = userDb.File.Extension,
+                        BinaryForm = userDb.File.BinaryForm
+                    }
                 };
             }
         }
@@ -97,11 +121,18 @@ namespace ServerDatabaseSystem.Implementation
                     .Where(u => u.Id != userModel.UserId)
                     .Skip(userModel.Page * 10)
                     .Take(10)
+                    .Include(u => u.File)
                     .Select(u => new UserListResponseModel()
                     {
                         UserId = u.Id,
                         UserName = u.UserName,
-                        Picture = u.Picture
+                        Picture = new FileModel()
+                        {
+                            Id = u.File.Id,
+                            FileName = u.File.FileName,
+                            Extension = u.File.Extension,
+                            BinaryForm = u.File.BinaryForm
+                        }
                     })
                     .ToList()
                     : context.Users
@@ -114,7 +145,13 @@ namespace ServerDatabaseSystem.Implementation
                     {
                         UserId = u.Id,
                         UserName = u.UserName,
-                        Picture = u.Picture
+                        Picture = new FileModel()
+                        {
+                            Id = u.File.Id,
+                            FileName = u.File.FileName,
+                            Extension = u.File.Extension,
+                            BinaryForm = u.File.BinaryForm
+                        }
                     })
                     .ToList();
             }
@@ -135,10 +172,14 @@ namespace ServerDatabaseSystem.Implementation
                 if (usr == null)
                     throw new Exception("Такого пользователя нет в БД");
 
-
+                if (userModel.File != null)
+                {
+                    var file = context.Files.FirstOrDefault(f => f.Id == usr.FileId);
+                    file.BinaryForm = userModel.File.BinaryForm;
+                    file.Extension = userModel.File.Extension;
+                }
                 usr.Password = userModel.Password;
                 usr.UserName = userModel.UserName;
-                usr.Picture = userModel.Picture;
                 usr.PhoneNumber = userModel.PhoneNumber;
                 usr.Name = userModel.Name;
                 usr.SecondName = userModel.SecondName;

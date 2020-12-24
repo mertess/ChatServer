@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServerBusinessLogic.Interfaces.DataServices;
+using ServerBusinessLogic.Models;
 using ServerBusinessLogic.ReceiveModels.NotificationModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.NotificationModels;
@@ -75,13 +76,21 @@ namespace ServerDatabaseSystem.Implementation
                     .Where(n => n.ToUserId == model.UserId && n.IsAccepted == false)
                     .Skip(model.Page * 10)
                     .Take(10)
+                    .Include(n => n.FromUser)
+                    .Include(n => n.FromUser.File)
                     .Select(n => new NotificationResponseModel()
                     {
                         Id = n.Id,
                         Message = n.Message,
                         FromUserId = n.FromUserId,
-                        FromUserName = context.Users.FirstOrDefault(u => u.Id == n.FromUserId).UserName,
-                        UserPicture = context.Users.FirstOrDefault(u => u.Id == n.FromUserId).Picture
+                        FromUserName = n.FromUser.UserName,
+                        UserPicture = new FileModel()
+                        {
+                            Id = n.FromUser.File.Id,
+                            FileName = n.FromUser.File.FileName,
+                            Extension = n.FromUser.File.Extension,
+                            BinaryForm = n.FromUser.File.BinaryForm
+                        }
                     })
                     .ToList();
             }
@@ -116,6 +125,7 @@ namespace ServerDatabaseSystem.Implementation
             {
                 var notification = context.Notifications
                     .Include(n => n.FromUser)
+                    .Include(n => n.FromUser.File)
                     .FirstOrDefault(n => model.Id.HasValue && n.Id == model.Id.Value || n.FromUserId == model.FromUserId && n.ToUserId == model.ToUserId);
 
                 if (notification == null)
@@ -127,7 +137,13 @@ namespace ServerDatabaseSystem.Implementation
                     FromUserId = notification.FromUserId,
                     FromUserName = notification.FromUser.UserName,
                     Message = notification.Message,
-                    UserPicture = notification.FromUser.Picture
+                    UserPicture = new ServerBusinessLogic.Models.FileModel()
+                    {
+                        Id = notification.FromUser.File.Id,
+                        FileName = notification.FromUser.File.FileName,
+                        Extension = notification.FromUser.File.Extension,
+                        BinaryForm = notification.FromUser.File.BinaryForm
+                    }
                 };
             }
         }

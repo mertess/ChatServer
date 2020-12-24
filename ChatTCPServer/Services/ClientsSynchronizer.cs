@@ -242,7 +242,7 @@ namespace ChatTCPServer.Services
                                 {
                                     UserId = user2.Id,
                                     UserName = user2.UserName,
-                                    Picture = user2.Picture
+                                    Picture = user2.File
                                 })
                             }));
                         });
@@ -265,7 +265,7 @@ namespace ChatTCPServer.Services
                                 {
                                     UserId = user1.Id,
                                     UserName = user1.UserName,
-                                    Picture = user1.Picture
+                                    Picture = user1.File
                                 })
                             }));
                         });
