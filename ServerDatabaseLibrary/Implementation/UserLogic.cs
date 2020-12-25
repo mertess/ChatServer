@@ -83,9 +83,9 @@ namespace ServerDatabaseSystem.Implementation
                     UserName = userDb.UserName,
                     Name = userDb.Name,
                     SecondName = userDb.SecondName,
-                    Gender = userDb.Gender ?? default,
-                    Country = userDb.Country ?? default,
-                    City = userDb.City ?? default,
+                    Gender = userDb.Gender,
+                    Country = userDb.Country,
+                    City = userDb.City,
                     IsOnline = userDb.IsOnline,
                     PhoneNumber = userDb.PhoneNumber,
                     File = new FileModel()
@@ -167,14 +167,15 @@ namespace ServerDatabaseSystem.Implementation
                 usr.PhoneNumber = userModel.PhoneNumber ?? usr.PhoneNumber;
                 usr.Name = userModel.Name ?? usr.Name;
                 usr.SecondName = userModel.SecondName ?? usr.SecondName;
-                usr.Country = userModel.Country;
-                usr.Gender = userModel.Gender;
-                usr.City = userModel.City;
+                usr.Country = userModel.Country ?? usr.Country;
+                usr.Gender = userModel.Gender ?? usr.Gender;
+                usr.City = userModel.City ?? usr.City;
 
                 usr.PictureName = userModel.File?.FileName;
                 usr.PictureExtension = userModel.File?.Extension;
                 usr.Picture = userModel.File?.BinaryForm;
 
+                usr.IsOnline = userModel.IsOnline ?? usr.IsOnline;
                 context.SaveChanges();
             }
         }

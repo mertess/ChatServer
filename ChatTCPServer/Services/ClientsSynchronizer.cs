@@ -242,7 +242,8 @@ namespace ChatTCPServer.Services
                                 {
                                     UserId = user2.Id,
                                     UserName = user2.UserName,
-                                    Picture = user2.File
+                                    Picture = user2.File,
+                                    IsOnline = user2.IsOnline
                                 })
                             }));
                         });
@@ -265,7 +266,8 @@ namespace ChatTCPServer.Services
                                 {
                                     UserId = user1.Id,
                                     UserName = user1.UserName,
-                                    Picture = user1.File
+                                    Picture = user1.File,
+                                    IsOnline = user1.IsOnline
                                 })
                             }));
                         });
@@ -345,6 +347,13 @@ namespace ChatTCPServer.Services
                     }));
                 });
             });
+        }
+
+        public void SynchronizeOfflineStatus(Client client) 
+        { 
+            _mainLogic.UserProfileUpdate(new UserReceiveModel() { Id = client.Id, IsOnline = false });
+
+            SynchronizeOnlineStatus(_mainLogic.GetUser(new UserReceiveModel() { Id = client.Id }).JsonData as UserResponseModel);
         }
     }
 }
