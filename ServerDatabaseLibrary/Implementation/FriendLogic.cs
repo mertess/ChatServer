@@ -1,10 +1,13 @@
-﻿using ServerBusinessLogic.Interfaces.DataServices;
+﻿using Microsoft.EntityFrameworkCore;
+using ServerBusinessLogic.Interfaces.DataServices;
+using ServerBusinessLogic.Models;
 using ServerBusinessLogic.ReceiveModels.FriendModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 
 namespace ServerDatabaseSystem.Implementation
@@ -82,7 +85,12 @@ namespace ServerDatabaseSystem.Implementation
                     {
                         UserId = u.Id,
                         UserName = u.UserName,
-                        Picture = u.Picture
+                        Picture = new FileModel()
+                        {
+                            FileName = u.PictureName,
+                            Extension = u.PictureExtension,
+                            BinaryForm = u.Picture
+                        }
                     })
                     .ToList()
                     :
@@ -97,7 +105,12 @@ namespace ServerDatabaseSystem.Implementation
                     {
                         UserId = u.Id,
                         UserName = u.UserName,
-                        Picture = u.Picture
+                        Picture = new FileModel()
+                        {
+                            FileName = u.PictureName,
+                            Extension = u.PictureExtension,
+                            BinaryForm = u.Picture
+                        }
                     })
                     .ToList();
             }

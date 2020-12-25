@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServerBusinessLogic.Interfaces.DataServices;
+using ServerBusinessLogic.Models;
 using ServerBusinessLogic.ReceiveModels.NotificationModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.NotificationModels;
@@ -75,13 +76,19 @@ namespace ServerDatabaseSystem.Implementation
                     .Where(n => n.ToUserId == model.UserId && n.IsAccepted == false)
                     .Skip(model.Page * 10)
                     .Take(10)
+                    .Include(n => n.FromUser)
                     .Select(n => new NotificationResponseModel()
                     {
                         Id = n.Id,
                         Message = n.Message,
                         FromUserId = n.FromUserId,
-                        FromUserName = context.Users.FirstOrDefault(u => u.Id == n.FromUserId).UserName,
-                        UserPicture = context.Users.FirstOrDefault(u => u.Id == n.FromUserId).Picture
+                        FromUserName = n.FromUser.UserName,
+                        UserPicture = new FileModel()
+                        {
+                            FileName = n.FromUser.PictureName,
+                            Extension = n.FromUser.PictureExtension,
+                            BinaryForm = n.FromUser.Picture
+                        }
                     })
                     .ToList();
             }
@@ -127,7 +134,12 @@ namespace ServerDatabaseSystem.Implementation
                     FromUserId = notification.FromUserId,
                     FromUserName = notification.FromUser.UserName,
                     Message = notification.Message,
-                    UserPicture = notification.FromUser.Picture
+                    UserPicture = new FileModel()
+                    {
+                        FileName = notification.FromUser.PictureName,
+                        Extension = notification.FromUser.PictureExtension,
+                        BinaryForm = notification.FromUser.Picture
+                    }
                 };
             }
         }

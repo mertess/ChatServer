@@ -32,7 +32,10 @@ namespace ServerDatabaseSystem.DbModels
 
         public City? City { get; set; }
 
-        //[Required]
+        public string PictureName { get; set; }
+
+        public string PictureExtension { get; set; }
+
         public byte[] Picture { get; set; }
 
         public bool IsOnline { get; set; }

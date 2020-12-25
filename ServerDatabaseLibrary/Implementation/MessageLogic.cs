@@ -2,6 +2,7 @@
 using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ReceiveModels.MessageModels;
 using ServerBusinessLogic.ResponseModels.MessageModels;
+using ServerBusinessLogic.Models;
 using ServerDatabaseSystem.DbModels;
 using System;
 using System.Collections.Generic;
@@ -28,7 +29,10 @@ namespace ServerDatabaseSystem.Implementation
                     ChatId = messageModel.ChatId,
                     FromUserId = messageModel.FromUserId,
                     Date = messageModel.Date,
-                    UserMessage = messageModel.UserMassage
+                    UserMessage = messageModel.UserMassage,
+                    FileName = messageModel.File?.FileName,
+                    FileExtension = messageModel.File?.Extension,
+                    File = messageModel.File?.BinaryForm
                 });
                 context.SaveChanges();
 
@@ -44,7 +48,13 @@ namespace ServerDatabaseSystem.Implementation
                     UserId = addedMessage.FromUserId,
                     ChatId = addedMessage.ChatId,
                     Date = addedMessage.Date,
-                    UserMassage = addedMessage.UserMessage
+                    UserMassage = addedMessage.UserMessage,
+                    File = string.IsNullOrEmpty(addedMessage.FileName) ? null : new FileModel()
+                    {
+                        FileName = addedMessage.FileName,
+                        Extension = addedMessage.FileExtension,
+                        BinaryForm = addedMessage.File
+                    }
                 };
             }
         }
@@ -89,7 +99,13 @@ namespace ServerDatabaseSystem.Implementation
                         UserMassage = m.UserMessage,
                         ChatId = m.ChatId,
                         UserId = m.FromUserId,
-                        Date = m.Date
+                        Date = m.Date,
+                        File = string.IsNullOrEmpty(m.FileName) ? null : new FileModel()
+                        {
+                            FileName = m.FileName,
+                            Extension = m.FileExtension,
+                            BinaryForm = m.File
+                        }
                     })
                     .ToList();
             }
@@ -125,7 +141,13 @@ namespace ServerDatabaseSystem.Implementation
                     UserId = updatedMessage.FromUserId,
                     ChatId = updatedMessage.ChatId,
                     Date = updatedMessage.Date,
-                    UserMassage = updatedMessage.UserMessage
+                    UserMassage = updatedMessage.UserMessage,
+                    File = string.IsNullOrEmpty(updatedMessage.FileName) ? null : new FileModel()
+                    {
+                        FileName = updatedMessage.FileName,
+                        Extension = updatedMessage.FileExtension,
+                        BinaryForm = updatedMessage.File
+                    }
                 };
             }
         }

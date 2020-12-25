@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServerBusinessLogic.Interfaces.DataServices;
+using ServerBusinessLogic.Models;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
@@ -9,6 +10,7 @@ using ServerDatabaseSystem.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -139,7 +141,12 @@ namespace ServerDatabaseSystem.Implementation
                     {
                         Id = rcu.UserId,
                         UserName = rcu.User.UserName,
-                        Picture = rcu.User.Picture,
+                        Picture = new FileModel()
+                        {
+                            FileName = rcu.User.PictureName,
+                            Extension = rcu.User.PictureExtension,
+                            BinaryForm = rcu.User.Picture
+                        },
                         IsOnline = rcu.User.IsOnline
                     })
                     .ToList();
@@ -173,7 +180,12 @@ namespace ServerDatabaseSystem.Implementation
                             {
                                 Id = rcu.User.Id,
                                 UserName = rcu.User.UserName,
-                                Picture = rcu.User.Picture,
+                                Picture = new FileModel() 
+                                {
+                                    FileName = rcu.User.PictureName,
+                                    BinaryForm = rcu.User.Picture,
+                                    Extension = rcu.User.PictureExtension
+                                },
                                 IsOnline = rcu.User.IsOnline
                             })
                             .ToList(),

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ServerBusinessLogic.Models;
+using System;
 
 namespace ServerBusinessLogic.ResponseModels.MessageModels
 {
@@ -13,5 +14,7 @@ namespace ServerBusinessLogic.ResponseModels.MessageModels
         public string UserMassage { get; set; }
 
         public DateTime Date { get; set; }
+
+        public FileModel File { get; set; }
     }
 }

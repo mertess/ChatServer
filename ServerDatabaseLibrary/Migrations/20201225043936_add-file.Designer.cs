@@ -3,21 +3,54 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServerDatabaseSystem;
 
 namespace ServerDatabaseSystem.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20201225043936_add-file")]
+    partial class addfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "3.1.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+            modelBuilder.Entity("ServerDatabaseLibrary.DbModels.File", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<byte[]>("BinaryForm")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("Extension")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("FileId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileId")
+                        .IsUnique()
+                        .HasFilter("[FileId] IS NOT NULL");
+
+                    b.ToTable("Files");
+                });
 
             modelBuilder.Entity("ServerDatabaseSystem.DbModels.Chat", b =>
                 {
@@ -81,15 +114,6 @@ namespace ServerDatabaseSystem.Migrations
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
-
-                    b.Property<byte[]>("File")
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("FileExtension")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FileName")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("FromUserId")
                         .HasColumnType("int");
@@ -172,6 +196,9 @@ namespace ServerDatabaseSystem.Migrations
                     b.Property<int?>("Country")
                         .HasColumnType("int");
 
+                    b.Property<int>("FileId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("Gender")
                         .HasColumnType("int");
 
@@ -193,15 +220,6 @@ namespace ServerDatabaseSystem.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("Picture")
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("PictureExtension")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PictureName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("SecondName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -213,6 +231,13 @@ namespace ServerDatabaseSystem.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ServerDatabaseLibrary.DbModels.File", b =>
+                {
+                    b.HasOne("ServerDatabaseSystem.DbModels.User", "User")
+                        .WithOne("File")
+                        .HasForeignKey("ServerDatabaseLibrary.DbModels.File", "FileId");
                 });
 
             modelBuilder.Entity("ServerDatabaseSystem.DbModels.Chat", b =>

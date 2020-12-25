@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ServerBusinessLogic.Models;
+using System;
+using System.IO;
 
 namespace ServerBusinessLogic.ReceiveModels.MessageModels
 {
@@ -15,5 +17,7 @@ namespace ServerBusinessLogic.ReceiveModels.MessageModels
         public string UserMassage { get; set; }
 
         public bool IsReaded { get; set; }
+
+        public FileModel File { get; set; }
     }
 }
