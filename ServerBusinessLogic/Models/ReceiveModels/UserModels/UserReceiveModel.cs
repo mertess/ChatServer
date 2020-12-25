@@ -28,6 +28,6 @@ namespace ServerBusinessLogic.ReceiveModels.UserModels
 
         public FileModel File { get; set; }
 
-        public bool IsOnline { get; set; }
+        public bool? IsOnline { get; set; }
     }
 }

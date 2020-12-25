@@ -61,31 +61,6 @@ namespace ServerBusinessLogic.BusinessLogic
             }
         }
 
-        public OperationResultInfo UserAuthorization(UserReceiveModel userModel)
-        {
-            try
-            {
-                var user = _userLogic.GetUser(userModel);
-
-                return new OperationResultInfo()
-                {
-                    ToListener = ListenerType.AuthorizationListener,
-                    ErrorInfo = string.Empty,
-                    OperationResult = OperationsResults.Successfully,
-                    JsonData = user
-                };
-            }
-            catch (Exception ex)
-            {
-                return new OperationResultInfo()
-                {
-                    ToListener = ListenerType.AuthorizationListener,
-                    ErrorInfo = ex.Message,
-                    OperationResult = OperationsResults.Unsuccessfully
-                };
-            }
-        }
-
         public OperationResultInfo UserProfileUpdate(UserReceiveModel userModel)
         {
             try
@@ -94,6 +69,7 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
+                    ToListener = ListenerType.UserUpdateProfileListener,
                     OperationResult = OperationsResults.Successfully
                 };
             }
@@ -102,6 +78,7 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = ex.Message,
+                    ToListener = ListenerType.UserUpdateProfileListener,
                     OperationResult = OperationsResults.Unsuccessfully
                 };
             }
@@ -132,11 +109,11 @@ namespace ServerBusinessLogic.BusinessLogic
             }
         }
 
-        public OperationResultInfo GetUser(UserReceiveModel userModel)
+        public OperationResultInfo GetUser(UserReceiveModel userModel, bool authorizationSync = false)
         {
             try
             {
-                var user =  _userLogic.GetUser(userModel);
+                var user = _userLogic.GetUser(userModel, authorizationSync);
 
                 return new OperationResultInfo()
                 {
@@ -251,6 +228,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 return null;
             }
         }
+
+        public List<ChatResponseModel> GetChatByUsersId(List<int> usersId) => _chatLogic.GetChatsByUsersId(usersId);
 
         public OperationResultInfo GetPageOfChats(UserPaginationReceiveModel model)
         {
@@ -450,6 +429,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 };
             }
         }
+
+        public List<UserListResponseModel> GetFriends(int userId) => _friendLogic.ReadFriends(userId);
 
         #endregion
         #region NotificationLogicOperations

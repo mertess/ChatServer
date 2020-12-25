@@ -5,6 +5,7 @@
         AuthorizationListener,
         RegistrationListener,
         UserInfoListener,
+        UserUpdateProfileListener,
 
         ChatListListener,
         ChatListDeleteListener,

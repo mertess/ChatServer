@@ -21,13 +21,6 @@ namespace ChatTCPServer
             _requestHandler = new RequestHandler(
                 new Serializer(),
                 this,
-                new MainLogic(
-                    new ChatLogic(),
-                    new UserLogic(),
-                    new MessageLogic(),
-                    new FriendLogic(),
-                    new NotificationLogic()
-                ),
                 server.ConnectedClients);
 
             _tcpClient = tcpClient;
@@ -54,6 +47,7 @@ namespace ChatTCPServer
             }
             finally
             {
+                _requestHandler.HandleDisconnect();
                 Disconnect();
             }
         }

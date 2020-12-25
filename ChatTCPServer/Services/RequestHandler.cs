@@ -1,4 +1,5 @@
-﻿using ServerBusinessLogic.BusinessLogic;
+﻿using Microsoft.Identity.Client;
+using ServerBusinessLogic.BusinessLogic;
 using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.Interfaces;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
@@ -11,6 +12,7 @@ using ServerBusinessLogic.ResponseModels.MessageModels;
 using ServerBusinessLogic.ResponseModels.NotificationModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerBusinessLogic.TransmissionModels;
+using ServerDatabaseSystem.Implementation;
 using System;
 using System.Collections.Generic;
 
@@ -39,13 +41,18 @@ namespace ChatTCPServer.Services
         public RequestHandler(
             ISerializer serializer,
             Client client,
-            MainLogic mainLogic,
             List<Client> connectedClients)
         {
             _client = client;
-            _mainLogic = mainLogic;
+            _mainLogic = new MainLogic(
+                    new ChatLogic(),
+                    new UserLogic(),
+                    new MessageLogic(),
+                    new FriendLogic(),
+                    new NotificationLogic()
+                );
             _serializer = serializer;
-            _clientsSynchronizer = new ClientsSynchronizer(connectedClients, mainLogic, serializer);
+            _clientsSynchronizer = new ClientsSynchronizer(connectedClients, _mainLogic, serializer);
         }
 
         /// <summary>
@@ -63,15 +70,17 @@ namespace ChatTCPServer.Services
             {
                 case ClientOperations.Authorization:
                     var userReceiveModelAuthorization = _serializer.Deserialize<UserReceiveModel>(message.JsonData);
-                    var authorizationResult = _mainLogic.UserAuthorization(userReceiveModelAuthorization);
+                    var authorizationResult = _mainLogic.GetUser(userReceiveModelAuthorization, true);
+                    authorizationResult.ToListener = ListenerType.AuthorizationListener;
 
                     if (authorizationResult.OperationResult == OperationsResults.Successfully)
                     {
                         _client.Id = (authorizationResult.JsonData as UserResponseModel).Id;
                         Console.WriteLine(_client.Id + " Пользователь успешно авторизировался");
-                    }
 
-                    authorizationResult.JsonData = _serializer.Serialize(authorizationResult.JsonData as UserResponseModel);
+                        _clientsSynchronizer.SynchronizeOnlineStatus(authorizationResult.JsonData as UserResponseModel);
+                        authorizationResult.JsonData = _serializer.Serialize(authorizationResult.JsonData as UserResponseModel);
+                    }
 
                     var authorizationResultJson = _serializer.Serialize(authorizationResult);
                     _client.SendMessage(authorizationResultJson);
@@ -244,5 +253,7 @@ namespace ChatTCPServer.Services
                     break;
             }
         }
+
+        public void HandleDisconnect() => _clientsSynchronizer.SynchronizeOfflineStatus(_client);
     }
 }

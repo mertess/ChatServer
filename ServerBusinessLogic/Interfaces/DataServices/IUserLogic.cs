@@ -14,6 +14,6 @@ namespace ServerBusinessLogic.Interfaces.DataServices
 
         List<UserListResponseModel> ReadPage(UserPaginationReceiveModel user);
 
-        UserResponseModel GetUser(UserReceiveModel user);
+        UserResponseModel GetUser(UserReceiveModel user, bool authorizationSync);
     }
 }

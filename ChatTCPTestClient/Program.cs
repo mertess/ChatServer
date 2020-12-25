@@ -66,6 +66,7 @@ namespace ChatTCPTestClient
                 DataManager.AddListener(ListenerType.FriendListDeleteListener, FriendsDeleteListListener);
                 DataManager.AddListener(ListenerType.NotificationListListener, NotificationListListener);
                 DataManager.AddListener(ListenerType.UserInfoListener, UserInfoListener);
+                DataManager.AddListener(ListenerType.UserUpdateProfileListener, UserUpdateProfileListener);
 
                 Task.Run(() => RecieveMessages());
              
@@ -873,6 +874,7 @@ namespace ChatTCPTestClient
                     friends.Add(data);
                     Console.WriteLine("User Id = " + data.UserId);
                     Console.WriteLine("Username = " + data.UserName);
+                    Console.WriteLine("IsOnline = " + data.IsOnline);
                 }
                 else
                     Console.WriteLine("JsonData = null");
@@ -886,6 +888,7 @@ namespace ChatTCPTestClient
                 {
                     Console.WriteLine("UserId = " + user.UserId);
                     Console.WriteLine("Username = " + user.UserName);
+                    Console.WriteLine("IsOnline = " + user.IsOnline);
                 }
             }
             Console.ForegroundColor = ConsoleColor.White;
@@ -940,6 +943,27 @@ namespace ChatTCPTestClient
                 }
                 notifications = data;
             }
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        static void UserUpdateProfileListener(OperationResultInfo operationResultInfo)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
+            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
+            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
+            var data = serializer.Deserialize<UserResponseModel>(operationResultInfo.JsonData as string);
+            Console.WriteLine();
+            Console.WriteLine("--User received by user action : ");
+            Console.WriteLine("user id = " + data.Id);
+            Console.WriteLine("username = " + data.UserName);
+            Console.WriteLine("name = " + data.Name);
+            Console.WriteLine("second name = " + data.SecondName);
+            Console.WriteLine("phone = " + data.PhoneNumber);
+            Console.WriteLine("gender = " + Enum.GetName(typeof(Gender), data.Gender));
+            Console.WriteLine("city = " + Enum.GetName(typeof(City), data.City));
+            Console.WriteLine("country = " + Enum.GetName(typeof(Country), data.Country));
+            Console.WriteLine("is online = " + data.IsOnline);
             Console.ForegroundColor = ConsoleColor.White;
         }
         #endregion
