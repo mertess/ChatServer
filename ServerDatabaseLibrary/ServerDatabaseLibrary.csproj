@@ -162,7 +162,6 @@
   <ItemGroup>
     <Compile Include="DatabaseContext.cs" />
     <Compile Include="DbModels\Chat.cs" />
-    <Compile Include="DbModels\File.cs" />
     <Compile Include="DbModels\Friend.cs" />
     <Compile Include="DbModels\Message.cs" />
     <Compile Include="DbModels\Notification.cs" />
@@ -188,6 +187,14 @@
     <Compile Include="Migrations\20201209110741_update-for-test-09.12.2020.cs" />
     <Compile Include="Migrations\20201209110741_update-for-test-09.12.2020.Designer.cs">
       <DependentUpon>20201209110741_update-for-test-09.12.2020.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\20201225043936_add-file.cs" />
+    <Compile Include="Migrations\20201225043936_add-file.designer.cs">
+      <DependentUpon>20201225043936_add-file.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\20201225062151_file_updating.cs" />
+    <Compile Include="Migrations\20201225062151_file_updating.designer.cs">
+      <DependentUpon>20201225062151_file_updating.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\DatabaseContextModelSnapshot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

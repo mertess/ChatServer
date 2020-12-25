@@ -77,7 +77,6 @@ namespace ServerDatabaseSystem.Implementation
                     .Skip(model.Page * 10)
                     .Take(10)
                     .Include(n => n.FromUser)
-                    .Include(n => n.FromUser.File)
                     .Select(n => new NotificationResponseModel()
                     {
                         Id = n.Id,
@@ -86,10 +85,9 @@ namespace ServerDatabaseSystem.Implementation
                         FromUserName = n.FromUser.UserName,
                         UserPicture = new FileModel()
                         {
-                            Id = n.FromUser.File.Id,
-                            FileName = n.FromUser.File.FileName,
-                            Extension = n.FromUser.File.Extension,
-                            BinaryForm = n.FromUser.File.BinaryForm
+                            FileName = n.FromUser.PictureName,
+                            Extension = n.FromUser.PictureExtension,
+                            BinaryForm = n.FromUser.Picture
                         }
                     })
                     .ToList();
@@ -125,7 +123,6 @@ namespace ServerDatabaseSystem.Implementation
             {
                 var notification = context.Notifications
                     .Include(n => n.FromUser)
-                    .Include(n => n.FromUser.File)
                     .FirstOrDefault(n => model.Id.HasValue && n.Id == model.Id.Value || n.FromUserId == model.FromUserId && n.ToUserId == model.ToUserId);
 
                 if (notification == null)
@@ -137,12 +134,11 @@ namespace ServerDatabaseSystem.Implementation
                     FromUserId = notification.FromUserId,
                     FromUserName = notification.FromUser.UserName,
                     Message = notification.Message,
-                    UserPicture = new ServerBusinessLogic.Models.FileModel()
+                    UserPicture = new FileModel()
                     {
-                        Id = notification.FromUser.File.Id,
-                        FileName = notification.FromUser.File.FileName,
-                        Extension = notification.FromUser.File.Extension,
-                        BinaryForm = notification.FromUser.File.BinaryForm
+                        FileName = notification.FromUser.PictureName,
+                        Extension = notification.FromUser.PictureExtension,
+                        BinaryForm = notification.FromUser.Picture
                     }
                 };
             }

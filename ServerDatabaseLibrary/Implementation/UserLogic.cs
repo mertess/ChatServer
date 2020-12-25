@@ -28,25 +28,13 @@ namespace ServerDatabaseSystem.Implementation
                 if (context.Users.FirstOrDefault(u => u.Login.Equals(userModel.Login)) != null)
                     throw new Exception("Этот логин уже зарегистрирован!");
 
-                userModel.File.FileName = Guid.NewGuid().ToString();
-
-                context.Files.Add(new ServerDatabaseLibrary.DbModels.File()
-                {
-                    FileName = userModel.File.FileName,
-                    BinaryForm = new byte[10],
-                    Extension = userModel.File.Extension
-                });
-
-                var addedFile = context.Files.FirstOrDefault(f => f.FileName.Equals(userModel.File.FileName));
-
                 context.Users.Add(new User()
                 {
                     UserName = userModel.UserName,
                     Name = userModel.Name,
                     SecondName = userModel.SecondName,
                     Login = userModel.Login,
-                    Password = userModel.Password,
-                    FileId = addedFile.Id
+                    Password = userModel.Password
                 });
                 context.SaveChanges();
             }
@@ -78,7 +66,6 @@ namespace ServerDatabaseSystem.Implementation
             using (var context = new DatabaseContext())
             {
                 var userDb = context.Users
-                    .Include(u => u.File)
                     .FirstOrDefault(u => user.Id.HasValue && u.Id == user.Id.Value
                 || u.Login.Equals(user.Login) && u.Password.Equals(user.Password));
 
@@ -98,10 +85,9 @@ namespace ServerDatabaseSystem.Implementation
                     PhoneNumber = userDb.PhoneNumber,
                     File = new FileModel()
                     {
-                        Id = userDb.File.Id,
-                        FileName = userDb.File.FileName,
-                        Extension = userDb.File.Extension,
-                        BinaryForm = userDb.File.BinaryForm
+                        FileName = userDb.PictureName,
+                        Extension = userDb.PictureExtension,
+                        BinaryForm = userDb.Picture
                     }
                 };
             }
@@ -121,17 +107,15 @@ namespace ServerDatabaseSystem.Implementation
                     .Where(u => u.Id != userModel.UserId)
                     .Skip(userModel.Page * 10)
                     .Take(10)
-                    .Include(u => u.File)
                     .Select(u => new UserListResponseModel()
                     {
                         UserId = u.Id,
                         UserName = u.UserName,
                         Picture = new FileModel()
                         {
-                            Id = u.File.Id,
-                            FileName = u.File.FileName,
-                            Extension = u.File.Extension,
-                            BinaryForm = u.File.BinaryForm
+                            FileName = u.PictureName,
+                            Extension = u.PictureExtension,
+                            BinaryForm = u.Picture
                         }
                     })
                     .ToList()
@@ -147,10 +131,9 @@ namespace ServerDatabaseSystem.Implementation
                         UserName = u.UserName,
                         Picture = new FileModel()
                         {
-                            Id = u.File.Id,
-                            FileName = u.File.FileName,
-                            Extension = u.File.Extension,
-                            BinaryForm = u.File.BinaryForm
+                            FileName = u.PictureName,
+                            Extension = u.PictureExtension,
+                            BinaryForm = u.Picture
                         }
                     })
                     .ToList();
@@ -172,12 +155,6 @@ namespace ServerDatabaseSystem.Implementation
                 if (usr == null)
                     throw new Exception("Такого пользователя нет в БД");
 
-                if (userModel.File != null)
-                {
-                    var file = context.Files.FirstOrDefault(f => f.Id == usr.FileId);
-                    file.BinaryForm = userModel.File.BinaryForm;
-                    file.Extension = userModel.File.Extension;
-                }
                 usr.Password = userModel.Password;
                 usr.UserName = userModel.UserName;
                 usr.PhoneNumber = userModel.PhoneNumber;
@@ -186,6 +163,10 @@ namespace ServerDatabaseSystem.Implementation
                 usr.Country = userModel.Country;
                 usr.Gender = userModel.Gender;
                 usr.City = userModel.City;
+
+                usr.PictureName = userModel.File?.FileName;
+                usr.PictureExtension = userModel.File?.Extension;
+                usr.Picture = userModel.File?.BinaryForm;
 
                 context.SaveChanges();
             }

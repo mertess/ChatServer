@@ -81,17 +81,15 @@ namespace ServerDatabaseSystem.Implementation
                     .Take(10)
                     //danger
                     .Select(f => context.Users.FirstOrDefault(u => u.Id == f.FriendId))
-                    .Include(u => u.File)
                     .Select(u => new UserListResponseModel()
                     {
                         UserId = u.Id,
                         UserName = u.UserName,
                         Picture = new FileModel()
                         {
-                            Id = u.File.Id,
-                            FileName = u.File.FileName,
-                            Extension = u.File.Extension,
-                            BinaryForm = u.File.BinaryForm
+                            FileName = u.PictureName,
+                            Extension = u.PictureExtension,
+                            BinaryForm = u.Picture
                         }
                     })
                     .ToList()
@@ -99,7 +97,6 @@ namespace ServerDatabaseSystem.Implementation
                     context.Friends
                     .Where(f => f.UserId == model.UserId)
                     .Select(f => context.Users.FirstOrDefault(u => u.Id == f.FriendId))
-                    .Include(u => u.File)
                     .ToList()
                     .Where(u => u.UserName.StartsWith(model.SearchingUserName, true, CultureInfo.InvariantCulture))
                     .Skip(model.Page * 10)
@@ -110,10 +107,9 @@ namespace ServerDatabaseSystem.Implementation
                         UserName = u.UserName,
                         Picture = new FileModel()
                         {
-                            Id = u.File.Id,
-                            FileName = u.File.FileName,
-                            Extension = u.File.Extension,
-                            BinaryForm = u.File.BinaryForm
+                            FileName = u.PictureName,
+                            Extension = u.PictureExtension,
+                            BinaryForm = u.Picture
                         }
                     })
                     .ToList();

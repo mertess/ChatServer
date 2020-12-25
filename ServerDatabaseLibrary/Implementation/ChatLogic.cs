@@ -137,17 +137,15 @@ namespace ServerDatabaseSystem.Implementation
                 return context.RelationChatUsers
                     .Where(rcu => rcu.ChatId == chatId)
                     .Include(rcu => rcu.User)
-                    .Include(rcu => rcu.User.File)
                     .Select(rcu => new ChatUserResponseModel()
                     {
                         Id = rcu.UserId,
                         UserName = rcu.User.UserName,
                         Picture = new FileModel()
                         {
-                            Id = rcu.User.File.Id,
-                            FileName = rcu.User.File.FileName,
-                            Extension = rcu.User.File.Extension,
-                            BinaryForm = rcu.User.File.BinaryForm
+                            FileName = rcu.User.PictureName,
+                            Extension = rcu.User.PictureExtension,
+                            BinaryForm = rcu.User.Picture
                         },
                         IsOnline = rcu.User.IsOnline
                     })
@@ -178,17 +176,15 @@ namespace ServerDatabaseSystem.Implementation
                         ChatUsers = context.RelationChatUsers
                             .Where(rcu => rcu.ChatId == chat.Id)
                             .Include(rcu => rcu.User)
-                            .Include(rcu => rcu.User.File)
                             .Select(rcu => new ChatUserResponseModel()
                             {
                                 Id = rcu.User.Id,
                                 UserName = rcu.User.UserName,
                                 Picture = new FileModel() 
                                 {
-                                    Id = rcu.User.File.Id,
-                                    FileName = rcu.User.File.FileName,
-                                    BinaryForm = rcu.User.File.BinaryForm,
-                                    Extension = rcu.User.File.Extension
+                                    FileName = rcu.User.PictureName,
+                                    BinaryForm = rcu.User.Picture,
+                                    Extension = rcu.User.PictureExtension
                                 },
                                 IsOnline = rcu.User.IsOnline
                             })
