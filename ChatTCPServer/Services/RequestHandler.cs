@@ -63,15 +63,17 @@ namespace ChatTCPServer.Services
             {
                 case ClientOperations.Authorization:
                     var userReceiveModelAuthorization = _serializer.Deserialize<UserReceiveModel>(message.JsonData);
-                    var authorizationResult = _mainLogic.UserAuthorization(userReceiveModelAuthorization);
+                    var authorizationResult = _mainLogic.GetUser(userReceiveModelAuthorization, true);
+                    authorizationResult.ToListener = ListenerType.AuthorizationListener;
 
                     if (authorizationResult.OperationResult == OperationsResults.Successfully)
                     {
                         _client.Id = (authorizationResult.JsonData as UserResponseModel).Id;
                         Console.WriteLine(_client.Id + " Пользователь успешно авторизировался");
-                    }
 
-                    authorizationResult.JsonData = _serializer.Serialize(authorizationResult.JsonData as UserResponseModel);
+                        _clientsSynchronizer.SynchronizeOnlineStatus(authorizationResult.JsonData as UserResponseModel);
+                        authorizationResult.JsonData = _serializer.Serialize(authorizationResult.JsonData as UserResponseModel);
+                    }
 
                     var authorizationResultJson = _serializer.Serialize(authorizationResult);
                     _client.SendMessage(authorizationResultJson);

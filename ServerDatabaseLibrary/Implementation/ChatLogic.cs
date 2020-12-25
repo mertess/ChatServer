@@ -126,6 +126,31 @@ namespace ServerDatabaseSystem.Implementation
         }
 
         /// <summary>
+        /// Getting chat by users id 
+        /// </summary>
+        /// <param name="usersId"></param>
+        /// <returns><see cref="ChatResponseModel"/></returns>
+        public List<ChatResponseModel> GetChatsByUsersId(List<int> usersId)
+        {
+            using(var context = new DatabaseContext())
+            {
+                return context.Chats
+                    .Include(c => c.RelatChatUsers)
+                    .ToList()
+                    .Where(c => c.RelatChatUsers.Where(rcu => usersId.Contains(rcu.UserId)).Count() > 1)
+                    .Select(c => new ChatResponseModel()
+                    {
+                        Id = c.Id,
+                        ChatName = c.ChatName,
+                        CreatorId = c.CreatorId,
+                        CountUsers = c.CountUsers,
+                        ChatUsers = GetChatUsers(c.Id)
+                    })
+                    .ToList();
+            }
+        }
+
+        /// <summary>
         /// Getting user from chat using chat Id
         /// </summary>
         /// <param name="chatId"></param>

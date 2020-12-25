@@ -12,5 +12,7 @@ namespace ServerBusinessLogic.Interfaces.DataServices
         void Delete(FriendReceiveModel model);
 
         List<UserListResponseModel> ReadPage(UserPaginationReceiveModel model);
+
+        List<UserListResponseModel> ReadFriends(int userId);
     }
 }

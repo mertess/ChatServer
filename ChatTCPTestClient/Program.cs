@@ -873,6 +873,7 @@ namespace ChatTCPTestClient
                     friends.Add(data);
                     Console.WriteLine("User Id = " + data.UserId);
                     Console.WriteLine("Username = " + data.UserName);
+                    Console.WriteLine("IsOnline = " + data.IsOnline);
                 }
                 else
                     Console.WriteLine("JsonData = null");
@@ -886,6 +887,7 @@ namespace ChatTCPTestClient
                 {
                     Console.WriteLine("UserId = " + user.UserId);
                     Console.WriteLine("Username = " + user.UserName);
+                    Console.WriteLine("IsOnline = " + user.IsOnline);
                 }
             }
             Console.ForegroundColor = ConsoleColor.White;

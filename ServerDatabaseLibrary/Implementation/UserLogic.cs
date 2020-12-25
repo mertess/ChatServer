@@ -61,7 +61,7 @@ namespace ServerDatabaseSystem.Implementation
         /// </summary>
         /// <param name="user"><see cref="UserReceiveModel"/></param>
         /// <returns><see cref="UserResponseModel"/></returns>
-        public UserResponseModel GetUser(UserReceiveModel user)
+        public UserResponseModel GetUser(UserReceiveModel user, bool authorizationSync)
         {
             using (var context = new DatabaseContext())
             {
@@ -71,6 +71,11 @@ namespace ServerDatabaseSystem.Implementation
 
                 if (userDb == null)
                     throw new Exception("Пользователь не найден, возможно неправильный логин или пароль");
+
+                if (authorizationSync)
+                    userDb.IsOnline = true;
+
+                context.SaveChanges();
 
                 return new UserResponseModel()
                 {
@@ -116,7 +121,8 @@ namespace ServerDatabaseSystem.Implementation
                             FileName = u.PictureName,
                             Extension = u.PictureExtension,
                             BinaryForm = u.Picture
-                        }
+                        },
+                        IsOnline = u.IsOnline
                     })
                     .ToList()
                     : context.Users
@@ -134,7 +140,8 @@ namespace ServerDatabaseSystem.Implementation
                             FileName = u.PictureName,
                             Extension = u.PictureExtension,
                             BinaryForm = u.Picture
-                        }
+                        },
+                        IsOnline = u.IsOnline
                     })
                     .ToList();
             }
@@ -155,11 +162,11 @@ namespace ServerDatabaseSystem.Implementation
                 if (usr == null)
                     throw new Exception("Такого пользователя нет в БД");
 
-                usr.Password = userModel.Password;
-                usr.UserName = userModel.UserName;
-                usr.PhoneNumber = userModel.PhoneNumber;
-                usr.Name = userModel.Name;
-                usr.SecondName = userModel.SecondName;
+                usr.Password = userModel.Password ?? usr.Password;
+                usr.UserName = userModel.UserName ?? usr.UserName;
+                usr.PhoneNumber = userModel.PhoneNumber ?? usr.PhoneNumber;
+                usr.Name = userModel.Name ?? usr.Name;
+                usr.SecondName = userModel.SecondName ?? usr.SecondName;
                 usr.Country = userModel.Country;
                 usr.Gender = userModel.Gender;
                 usr.City = userModel.City;

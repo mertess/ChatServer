@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -90,7 +91,8 @@ namespace ServerDatabaseSystem.Implementation
                             FileName = u.PictureName,
                             Extension = u.PictureExtension,
                             BinaryForm = u.Picture
-                        }
+                        },
+                        IsOnline = u.IsOnline
                     })
                     .ToList()
                     :
@@ -110,7 +112,31 @@ namespace ServerDatabaseSystem.Implementation
                             FileName = u.PictureName,
                             Extension = u.PictureExtension,
                             BinaryForm = u.Picture
-                        }
+                        },
+                        IsOnline = u.IsOnline
+                    })
+                    .ToList();
+            }
+        }
+
+        public List<UserListResponseModel> ReadFriends(int userId)
+        {
+            using (var context = new DatabaseContext())
+            {
+                return context.Friends
+                    .Where(f => f.FriendId == userId)
+                    .Include(f => f.User)
+                    .Select(f => new UserListResponseModel()
+                    {
+                        UserId = f.UserId,
+                        UserName = f.User.UserName,
+                        Picture = new FileModel()
+                        {
+                            FileName = f.User.PictureName,
+                            Extension = f.User.PictureExtension,
+                            BinaryForm = f.User.Picture
+                        },
+                        IsOnline = f.User.IsOnline
                     })
                     .ToList();
             }

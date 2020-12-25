@@ -304,9 +304,47 @@ namespace ChatTCPServer.Services
         /// <summary>
         /// Synchronization user online status
         /// </summary>
-        public void SynchronizeOnlineStatus()
+        public void SynchronizeOnlineStatus(UserResponseModel userReponseModel)
         {
+            var friends = _mainLogic.GetFriends(userReponseModel.Id);
 
+            var friendOnline = _connectedClients.Where(cc => friends.FirstOrDefault(f => f.UserId == cc.Id) != null);
+
+            Parallel.ForEach(friendOnline, (friend) =>
+            {
+                //chats that contains current user and current user friend
+                var chats = _mainLogic.GetChatByUsersId(new List<int>() { friend.Id, userReponseModel.Id });
+
+                //synchronize friends chats 
+                Task.Run(() =>
+                {
+                    friend.SendMessage(_serializer.Serialize(new OperationResultInfo()
+                    {
+                        ErrorInfo = string.Empty,
+                        OperationResult = OperationsResults.Successfully,
+                        ToListener = ListenerType.ChatListListener,
+                        JsonData = _serializer.Serialize(chats)
+                    }));
+                });
+
+                //synchronize friends friend-lists
+                Task.Run(() =>
+                {
+                    friend.SendMessage(_serializer.Serialize(new OperationResultInfo() 
+                    {
+                        ErrorInfo = string.Empty,
+                        OperationResult = OperationsResults.Successfully,
+                        ToListener = ListenerType.FriendListListener,
+                        JsonData = _serializer.Serialize(new UserListResponseModel() 
+                        {
+                            UserId = userReponseModel.Id,
+                            UserName = userReponseModel.UserName,
+                            Picture = userReponseModel.File,
+                            IsOnline = userReponseModel.IsOnline
+                        })
+                    }));
+                });
+            });
         }
     }
 }

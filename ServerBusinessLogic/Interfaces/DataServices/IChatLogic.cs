@@ -18,5 +18,7 @@ namespace ServerBusinessLogic.Interfaces.DataServices
         List<ChatUserResponseModel> GetChatUsers(int chatId);
 
         ChatResponseModel GetChat(ChatReceiveModel model);
+
+        List<ChatResponseModel> GetChatsByUsersId(List<int> usersId);
     }
 }
