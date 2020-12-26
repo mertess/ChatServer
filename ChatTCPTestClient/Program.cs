@@ -320,7 +320,7 @@ namespace ChatTCPTestClient
                             Console.WriteLine("authorization +");
                             Console.WriteLine("registration +");
                             Console.WriteLine("get_users +");
-                            Console.WriteLine("update_profile -");
+                            Console.WriteLine("update_profile +");
                             Console.WriteLine("create_chat +");
                             Console.WriteLine("update_chat +");
                             Console.WriteLine("delete_chat +");
@@ -335,7 +335,7 @@ namespace ChatTCPTestClient
                             Console.WriteLine("update_message +");
                             Console.WriteLine("delete_message +");
                             Console.WriteLine("delete_friend +");
-                            Console.WriteLine("get_user -");
+                            Console.WriteLine("get_user +");
                             Console.WriteLine("show_users");
                             Console.WriteLine("show_chats");
                             Console.WriteLine("show_chat_info");
@@ -638,6 +638,7 @@ namespace ChatTCPTestClient
         #region listeners
         static void AuthorizationListener(OperationResultInfo operationResultInfo)
         {
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
@@ -656,19 +657,23 @@ namespace ChatTCPTestClient
                 Console.WriteLine("IsOnline = " + user.IsOnline);
             }
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
         }
 
         static void RegistrationListener(OperationResultInfo operationResultInfo)
         {
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Reg Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
         }
 
         static void MessageListListener(OperationResultInfo operationResultInfo)
         {
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
@@ -724,10 +729,12 @@ namespace ChatTCPTestClient
                 }
             }
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
         }
 
         static void ChatListListener(OperationResultInfo operationResultInfo)
         {
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
@@ -773,10 +780,12 @@ namespace ChatTCPTestClient
                 }
             }
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
         }
 
         static void ChatListDeleteListener(OperationResultInfo operationResultInfo)
         {
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
@@ -795,10 +804,12 @@ namespace ChatTCPTestClient
             if(deletingChat != null)
                 chats.Remove(deletingChat);
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
         }
 
         static void MessageDeleteListListener(OperationResultInfo operationResultInfo)
         {
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Message for deleting : ");
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
@@ -818,10 +829,12 @@ namespace ChatTCPTestClient
                     messages[data.ChatId].Remove(deletingMessage);
             }
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
         }
 
         static void UserListListener(OperationResultInfo operationResultInfo)
         {
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
@@ -836,10 +849,12 @@ namespace ChatTCPTestClient
 
             users = data;
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
         }
 
         static void UserInfoListener(OperationResultInfo operationResultInfo)
         {
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
@@ -857,10 +872,12 @@ namespace ChatTCPTestClient
             Console.WriteLine("country = " + Enum.GetName(typeof(Country), data.Country));
             Console.WriteLine("is online = " + data.IsOnline);
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
         }
 
         static void FriendsListListener(OperationResultInfo operationResultInfo)
         {
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
@@ -892,10 +909,12 @@ namespace ChatTCPTestClient
                 }
             }
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
         }
 
         static void FriendsDeleteListListener(OperationResultInfo operationResultInfo)
         {
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
@@ -907,10 +926,12 @@ namespace ChatTCPTestClient
 
             friends.Remove(friends.FirstOrDefault(f => f.UserId == data.UserId));
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
         }
 
         static void NotificationListListener(OperationResultInfo operationResultInfo)
         {
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
@@ -944,10 +965,12 @@ namespace ChatTCPTestClient
                 notifications = data;
             }
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
         }
 
         static void UserUpdateProfileListener(OperationResultInfo operationResultInfo)
         {
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
@@ -965,6 +988,7 @@ namespace ChatTCPTestClient
             Console.WriteLine("country = " + Enum.GetName(typeof(Country), data.Country));
             Console.WriteLine("is online = " + data.IsOnline);
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
         }
         #endregion
 
