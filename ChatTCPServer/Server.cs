@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NLog;
+using NLog.Fluent;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -10,6 +12,8 @@ namespace ChatTCPServer
     {
         private readonly TcpListener tcpListener_;
         public List<Client> ConnectedClients { get; private set; }
+
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public Server(string Address, int Port)
         {
@@ -26,6 +30,7 @@ namespace ChatTCPServer
                 while (true)
                 {
                     var tcpClient = tcpListener_.AcceptTcpClient();
+                    _logger.Info($"Getting connection by IP:{IPAddress.Parse(((IPEndPoint)tcpClient.Client.RemoteEndPoint).Address.ToString())}");
                     Client client = new Client(tcpClient, this);
                     Thread thread = new Thread(() => client.Process());
                     thread.Start();
@@ -33,10 +38,12 @@ namespace ChatTCPServer
             }
             catch (Exception ex)
             {
+                _logger.Warn(ex.Message);
                 Console.WriteLine(ex.Message);
             }
             finally
             {
+                _logger.Info("Server has stopped");
                 DisconnectServer();
             }
         }
@@ -45,7 +52,6 @@ namespace ChatTCPServer
         {
             foreach (var client in ConnectedClients)
             {
-                //client.SendMessage("Server stopped");
                 client.Disconnect();
             }
             Console.WriteLine("Server shutdown...");

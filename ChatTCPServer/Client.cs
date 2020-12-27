@@ -1,4 +1,5 @@
 ﻿using ChatTCPServer.Services;
+using NLog;
 using ServerBusinessLogic.BusinessLogic;
 using ServerDatabaseSystem.Implementation;
 using System;
@@ -13,13 +14,15 @@ namespace ChatTCPServer
         private readonly Server _server;
         private readonly NetworkStream _networkStream;
         private readonly RequestHandler _requestHandler;
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         public int Id { set; get; }
 
         public Client(TcpClient tcpClient, Server server)
         {
             //wtf
             _requestHandler = new RequestHandler(
-                new Serializer(),
+                new JsonStringSerializer(),
+                new JsonBinarySerializer(),
                 this,
                 server.ConnectedClients);
 
@@ -43,10 +46,12 @@ namespace ChatTCPServer
             }
             catch (Exception e)
             {
+                _logger.Warn(e.Message);
                 Console.WriteLine(Id + " " + e.Message);
             }
             finally
             {
+                _logger.Info($"user {Id} has disconnected");
                 _requestHandler.HandleDisconnect();
                 Disconnect();
             }
@@ -65,6 +70,8 @@ namespace ChatTCPServer
             } while (_networkStream.DataAvailable);
             Console.WriteLine("Получено сообщение - " + Id + " " + stringBuilder.ToString());
 
+            _logger.Info($"Getted message from user {Id}: {stringBuilder}");
+
             return stringBuilder.ToString();
         }
 
@@ -72,6 +79,8 @@ namespace ChatTCPServer
         {
             try
             {
+                _logger.Info($"Sended message to user {Id}: {message}");
+
                 Console.WriteLine("Отправлено сообщение - " + Id + " " + message);
                 byte[] data = Encoding.UTF8.GetBytes(message);
                 _networkStream.Write(data, 0, data.Length);
