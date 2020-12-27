@@ -4,9 +4,9 @@ using ServerBusinessLogic.Interfaces;
 namespace ChatTCPServer.Services
 {
     /// <summary>
-    /// Serializer for serialization from string and to string
+    /// Serializer for serialization from string json to object and object to string json
     /// </summary>
-    public class Serializer : ISerializer
+    public class JsonStringSerializer : ISerializer<string>
     {
         /// <summary>
         /// Deserialize JSON string to T object

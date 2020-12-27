@@ -30,12 +30,12 @@ namespace ChatTCPTestClient
 {
     class Program
     {
-        static string serverIp = "127.0.0.1";
+        static string serverIp = "25.68.135.116";
         static int serverPort = 8668;
         static TcpClient tcpClient;
         static NetworkStream networkStream;
         static UserResponseModel user;
-        static Serializer serializer = new Serializer();
+        static JsonStringSerializer serializer = new JsonStringSerializer();
         static DataManager DataManager = new DataManager();
 
         static List<ChatResponseModel> chats = new List<ChatResponseModel>();

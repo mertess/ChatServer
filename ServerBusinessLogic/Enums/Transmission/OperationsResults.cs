@@ -1,6 +1,6 @@
 ﻿namespace ServerBusinessLogic.Enums.Transmission
 {
-    public enum OperationsResults
+    public enum OperationsResults : int
     {
         Successfully,
         Unsuccessfully

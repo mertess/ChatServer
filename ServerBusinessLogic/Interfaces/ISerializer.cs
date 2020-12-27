@@ -1,8 +1,8 @@
 ﻿namespace ServerBusinessLogic.Interfaces
 {
-    public interface ISerializer
+    public interface ISerializer<G>
     {
-        string Serialize<T>(T obj) where T : class, new();
-        T Deserialize<T>(string obj) where T : class, new();
+        G Serialize<T>(T obj) where T : class, new();
+        T Deserialize<T>(G obj) where T : class, new();
     }
 }
