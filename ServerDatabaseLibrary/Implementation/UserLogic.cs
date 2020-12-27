@@ -110,8 +110,8 @@ namespace ServerDatabaseSystem.Implementation
                 return string.IsNullOrEmpty(userModel.SearchingUserName)
                     ? context.Users
                     .Where(u => u.Id != userModel.UserId)
-                    .Skip(userModel.Page * 10)
-                    .Take(10)
+                    .Skip(userModel.Page * 15)
+                    .Take(15)
                     .Select(u => new UserListResponseModel()
                     {
                         UserId = u.Id,
@@ -129,8 +129,8 @@ namespace ServerDatabaseSystem.Implementation
                     .Where(u => u.Id != userModel.UserId)
                     .ToList()
                     .Where(u => u.UserName.StartsWith(userModel.SearchingUserName, true, CultureInfo.InvariantCulture))
-                    .Skip(userModel.Page * 10)
-                    .Take(10)
+                    .Skip(userModel.Page * 15)
+                    .Take(15)
                     .Select(u => new UserListResponseModel()
                     {
                         UserId = u.Id,

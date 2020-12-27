@@ -78,8 +78,8 @@ namespace ServerDatabaseSystem.Implementation
                 return string.IsNullOrEmpty(model.SearchingUserName) ?
                     context.Friends
                     .Where(f => f.UserId == model.UserId)
-                    .Skip(model.Page * 10)
-                    .Take(10)
+                    .Skip(model.Page * 15)
+                    .Take(15)
                     //danger
                     .Select(f => context.Users.FirstOrDefault(u => u.Id == f.FriendId))
                     .Select(u => new UserListResponseModel()
@@ -101,8 +101,8 @@ namespace ServerDatabaseSystem.Implementation
                     .Select(f => context.Users.FirstOrDefault(u => u.Id == f.FriendId))
                     .ToList()
                     .Where(u => u.UserName.StartsWith(model.SearchingUserName, true, CultureInfo.InvariantCulture))
-                    .Skip(model.Page * 10)
-                    .Take(10)
+                    .Skip(model.Page * 15)
+                    .Take(15)
                     .Select(u => new UserListResponseModel()
                     {
                         UserId = u.Id,

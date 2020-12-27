@@ -91,8 +91,8 @@ namespace ServerDatabaseSystem.Implementation
             {
                 return context.Messages
                     .Where(m => m.ChatId == chatModel.ChatId)
-                    .Skip(chatModel.Page * 10)
-                    .Take(10)
+                    .Skip(chatModel.Page * 30)
+                    .Take(30)
                     .Select(m => new MessageResponseModel()
                     {
                         Id = m.Id,

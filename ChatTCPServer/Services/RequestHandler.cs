@@ -1,4 +1,6 @@
-﻿using ServerBusinessLogic.BusinessLogic;
+﻿using NLog;
+using ServerBusinessLogic.BusinessLogic;
+using ServerBusinessLogic.Enums;
 using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.Interfaces;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
@@ -27,6 +29,7 @@ namespace ChatTCPServer.Services
         private readonly MainLogic _mainLogic;
         private readonly Client _client;
         private readonly ClientsSynchronizer _clientsSynchronizer;
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Constructor
@@ -70,6 +73,7 @@ namespace ChatTCPServer.Services
             //switch will convert by compiler to hashtable
             if (message != null)
             {
+                _logger.Info($"Getted correct message from user {_client.Id}");
                 switch (message.Operation)
                 {
                     case ClientOperations.Authorization:
@@ -82,9 +86,13 @@ namespace ChatTCPServer.Services
                             _client.Id = (authorizationResult.JsonData as UserResponseModel).Id;
                             Console.WriteLine(_client.Id + " Пользователь успешно авторизировался");
 
+                            _logger.Info($"User {_client.Id} authorization is successfully");
+
                             _clientsSynchronizer.SynchronizeOnlineStatus(authorizationResult.JsonData as UserResponseModel);
                             authorizationResult.JsonData = _jsonStringSerializer.Serialize(authorizationResult.JsonData as UserResponseModel);
                         }
+                        else
+                            _logger.Info($"User {_client.Id} authorization is unseccessfully");
 
                         var authorizationResultJson = _jsonStringSerializer.Serialize(authorizationResult);
                         _client.SendMessage(authorizationResultJson);
@@ -92,21 +100,45 @@ namespace ChatTCPServer.Services
 
                     case ClientOperations.Registration:
                         var userReceiveModelRegistration = _jsonStringSerializer.Deserialize<UserReceiveModel>(message.JsonData);
-                        var registrationResult = _jsonStringSerializer.Serialize(_mainLogic.UserRegistration(userReceiveModelRegistration));
-                        _client.SendMessage(registrationResult);
-                        break;
+                        var registrationResult = _mainLogic.UserRegistration(userReceiveModelRegistration);
+                        var registrationResultJson = _jsonStringSerializer.Serialize(_mainLogic.UserRegistration(userReceiveModelRegistration));
 
-                    //---
+                        _logger.Info($"User registration - login: {userReceiveModelRegistration.Login} " +
+                            $" password: {userReceiveModelRegistration.Password} " +
+                            $"result: {Enum.GetName(typeof(OperationsResults), registrationResult.OperationResult)} " +
+                            $"Error info : {registrationResult.ErrorInfo}");
+
+                        _client.SendMessage(registrationResultJson);
+
+                        break;
 
                     case ClientOperations.UpdateProfile:
                         var userReceiveModelUpdateProfile = _jsonStringSerializer.Deserialize<UserReceiveModel>(message.JsonData);
-                        var updateProfileResult = _jsonStringSerializer.Serialize(_mainLogic.UserProfileUpdate(userReceiveModelUpdateProfile));
-                        _client.SendMessage(updateProfileResult);
+                        var updateProfileResult = _mainLogic.UserProfileUpdate(userReceiveModelUpdateProfile);
+                        var updateProfileResultJson = _jsonStringSerializer.Serialize(_mainLogic.UserProfileUpdate(userReceiveModelUpdateProfile));
+
+                        _logger.Info($"User {_client.Id} - username: {userReceiveModelUpdateProfile.UserName} " +
+                            $" password: {userReceiveModelUpdateProfile.Password} " +
+                            $" name: {userReceiveModelUpdateProfile.Name} " +
+                            $" secondname: {userReceiveModelUpdateProfile.SecondName} " +
+                            $" gender: {userReceiveModelUpdateProfile.Gender} " +
+                            $" phoneNumber: {userReceiveModelUpdateProfile.PhoneNumber} " +
+                            $" country: {userReceiveModelUpdateProfile.Country} " +
+                            $" city: {userReceiveModelUpdateProfile.City} " +
+                            $" name: {userReceiveModelUpdateProfile.Name} " +
+                            $" result: {Enum.GetName(typeof(OperationsResults), updateProfileResult.OperationResult)}" +
+                            $" Error info : {updateProfileResult.ErrorInfo}");
+
+                        _client.SendMessage(updateProfileResultJson);
                         break;
 
                     case ClientOperations.GetUsers:
                         var userPaginationReceiveModel = _jsonStringSerializer.Deserialize<UserPaginationReceiveModel>(message.JsonData);
                         var getUsersResult = _mainLogic.GetPageOfUsers(userPaginationReceiveModel);
+
+                        _logger.Info($"User {_client.Id} has get users " +
+                            $"result: {Enum.GetName(typeof(OperationsResults), getUsersResult.OperationResult)} " +
+                            $"error info: {getUsersResult.ErrorInfo}");
 
                         getUsersResult.JsonData = _jsonStringSerializer.Serialize(getUsersResult.JsonData as List<UserListResponseModel>);
                         var getUsersResultJson = _jsonStringSerializer.Serialize(getUsersResult);
@@ -120,10 +152,20 @@ namespace ChatTCPServer.Services
 
                         if (messageSendResult.JsonData != null)
                         {
+
                             var messageResponseModel = messageSendResult.JsonData as MessageResponseModel;
+
+                            _logger.Info($"User {_client.Id} has send message " +
+                                $"chat id: {messageResponseModel.ChatId} " +
+                                $"message: {messageResponseModel.UserMassage}");
+
                             _clientsSynchronizer.SynchronizeChatsMessages(messageResponseModel);
                             messageSendResult.JsonData = _jsonStringSerializer.Serialize(messageResponseModel);
                         }
+                        else
+                            _logger.Info($"User {_client.Id} has not send message " +
+                                $"result: {Enum.GetName(typeof(OperationsResults), messageSendResult.OperationResult)} " +
+                                $"error info: {messageSendResult.ErrorInfo}");
 
                         _client.SendMessage(_jsonStringSerializer.Serialize(messageSendResult));
                         break;
@@ -135,9 +177,21 @@ namespace ChatTCPServer.Services
                         if (chatCreateResult.JsonData != null)
                         {
                             var chatResponseModel = chatCreateResult.JsonData as ChatResponseModel;
+
+                            _logger.Info($"User {_client.Id} has create chat " +
+                                $"chat id: {chatResponseModel.Id} " +
+                                $"creator id: {chatResponseModel.CreatorId} " +
+                                $"chatname: {chatResponseModel.ChatName} " +
+                                $"message: {chatResponseModel.CountUsers}");
+
                             _clientsSynchronizer.SynchronizeCreatingChat(chatResponseModel);
                             chatCreateResult.JsonData = _jsonStringSerializer.Serialize(chatResponseModel);
                         }
+                        else
+                            _logger.Info($"User {_client.Id} has not create chat " +
+                                $"result: {Enum.GetName(typeof(OperationsResults), chatCreateResult.OperationResult)} " +
+                                $"error info: {chatCreateResult.ErrorInfo}");
+
                         _client.SendMessage(_jsonStringSerializer.Serialize(chatCreateResult));
                         break;
 
@@ -149,9 +203,21 @@ namespace ChatTCPServer.Services
                         if (chatUpdateResult.JsonData != null)
                         {
                             var chatResponseModelAfterUpdate = chatUpdateResult.JsonData as ChatResponseModel;
+
+                            _logger.Info($"User {_client.Id} has update chat " +
+                                $"chat id: {chatResponseModelAfterUpdate.Id} " +
+                                $"creator id: {chatResponseModelAfterUpdate.CreatorId} " +
+                                $"chatname: {chatResponseModelAfterUpdate.ChatName} " +
+                                $"count users: {chatResponseModelAfterUpdate.CountUsers}");
+
                             _clientsSynchronizer.SynchronizeUpdatingChat(chatResponseModelAfterUpdate, chatBeforeUpdate);
                             chatUpdateResult.JsonData = _jsonStringSerializer.Serialize(chatResponseModelAfterUpdate);
                         }
+                        else
+                            _logger.Info($"User {_client.Id} has not update chat " +
+                                $"result: {Enum.GetName(typeof(OperationsResults), chatUpdateResult.OperationResult)} " +
+                                $"error info: {chatUpdateResult.ErrorInfo}");
+
                         _client.SendMessage(_jsonStringSerializer.Serialize(chatUpdateResult));
                         break;
 
@@ -160,6 +226,10 @@ namespace ChatTCPServer.Services
                         var chatDeleteResult = _mainLogic.ChatDelete(chatReceiveModelDelete);
                         _client.SendMessage(_jsonStringSerializer.Serialize(chatDeleteResult));
 
+                        _logger.Info($"User {_client.Id} has delete chat " +
+                                $"result: {Enum.GetName(typeof(OperationsResults), chatDeleteResult.OperationResult)} " +
+                                $"error info: {chatDeleteResult.ErrorInfo}");
+
                         if (chatDeleteResult.OperationResult == OperationsResults.Successfully)
                             _clientsSynchronizer.SynchronizeDeletingChat(chatReceiveModelDelete);
                         break;
@@ -167,6 +237,11 @@ namespace ChatTCPServer.Services
                     case ClientOperations.GetChats:
                         var userPaginationModetGetChats = _jsonStringSerializer.Deserialize<UserPaginationReceiveModel>(message.JsonData);
                         var getChatsResult = _mainLogic.GetPageOfChats(userPaginationModetGetChats);
+
+                        _logger.Info($"User {_client.Id} has get chats " +
+                                $"result: {Enum.GetName(typeof(OperationsResults), getChatsResult.OperationResult)} " +
+                                $"error info: {getChatsResult.ErrorInfo}");
+
                         getChatsResult.JsonData = _jsonStringSerializer.Serialize(getChatsResult.JsonData as List<ChatResponseModel>);
                         _client.SendMessage(_jsonStringSerializer.Serialize(getChatsResult));
                         break;
@@ -178,9 +253,20 @@ namespace ChatTCPServer.Services
                         if (updateMessageResult.JsonData != null)
                         {
                             var messageResponseModel = updateMessageResult.JsonData as MessageResponseModel;
+
+                            _logger.Info($"User {_client.Id} has update message " +
+                                $"message id: {messageResponseModel.Id} " +
+                                $"user id: {messageResponseModel.UserId} " +
+                                $"message: {messageResponseModel.UserMassage}");
+
                             _clientsSynchronizer.SynchronizeChatsMessages(messageResponseModel);
                             updateMessageResult.JsonData = _jsonStringSerializer.Serialize(messageResponseModel);
                         }
+                        else
+                            _logger.Info($"User {_client.Id} has not update message " +
+                                $"result: {Enum.GetName(typeof(OperationsResults), updateMessageResult.OperationResult)} " +
+                                $"error info: {updateMessageResult.ErrorInfo}");
+
                         _client.SendMessage(_jsonStringSerializer.Serialize(updateMessageResult));
                         break;
 
@@ -189,6 +275,13 @@ namespace ChatTCPServer.Services
                         var deleteMessageResult = _mainLogic.DeleteMessage(messageReceiveModelDelete);
                         _client.SendMessage(_jsonStringSerializer.Serialize(deleteMessageResult));
 
+                        _logger.Info($"User {_client.Id} has delete message " +
+                                $"message id: {messageReceiveModelDelete.Id} " +
+                                $"chat id: {messageReceiveModelDelete.ChatId} " +
+                                $"message: {messageReceiveModelDelete.UserMassage} " +
+                                $"result: {Enum.GetName(typeof(OperationsResults), deleteMessageResult.OperationResult)} " +
+                                $"error info: {deleteMessageResult.ErrorInfo}");
+
                         if (deleteMessageResult.OperationResult == OperationsResults.Successfully)
                             _clientsSynchronizer.SynchronizeChatsDeletingMessages(messageReceiveModelDelete);
                         break;
@@ -196,12 +289,20 @@ namespace ChatTCPServer.Services
                     case ClientOperations.GetMessages:
                         var chatPaginationReceiveMessageGet = _jsonStringSerializer.Deserialize<ChatPaginationReceiveModel>(message.JsonData);
                         var getChatMessagesResult = _mainLogic.GetChatMessages(chatPaginationReceiveMessageGet);
+
+                        _logger.Info($"User {_client.Id} has get messages " +
+                               $"result: {Enum.GetName(typeof(OperationsResults), getChatMessagesResult.OperationResult)} " +
+                               $"error info: {getChatMessagesResult.ErrorInfo}");
+
                         getChatMessagesResult.JsonData = _jsonStringSerializer.Serialize(getChatMessagesResult.JsonData as List<MessageResponseModel>);
                         _client.SendMessage(_jsonStringSerializer.Serialize(getChatMessagesResult));
                         break;
 
                     case ClientOperations.AddFriend:
                         var friendReceiveModelAdd = _jsonStringSerializer.Deserialize<FriendReceiveModel>(message.JsonData);
+
+                        _logger.Info($"User {_client.Id} has send invite to {friendReceiveModelAdd.FriendId} for friend");
+
                         _clientsSynchronizer.SynchronizeAddFriendNotifications(friendReceiveModelAdd);
                         break;
 
@@ -210,6 +311,10 @@ namespace ChatTCPServer.Services
                         var friendDeleteResult = _mainLogic.DeleteFriend(friendReceiveModelDelete);
                         _client.SendMessage(_jsonStringSerializer.Serialize(friendDeleteResult));
 
+                        _logger.Info($"User {_client.Id} has delete friend {friendReceiveModelDelete.FriendId} " +
+                               $"result: {Enum.GetName(typeof(OperationsResults), friendDeleteResult.OperationResult)} " +
+                               $"error info: {friendDeleteResult.ErrorInfo}");
+
                         if (friendDeleteResult.OperationResult == OperationsResults.Successfully)
                             _clientsSynchronizer.SynchronizeDeletingFriend(friendReceiveModelDelete);
                         break;
@@ -217,6 +322,11 @@ namespace ChatTCPServer.Services
                     case ClientOperations.GetFriends:
                         var userPaginationReceiveModelGetFriends = _jsonStringSerializer.Deserialize<UserPaginationReceiveModel>(message.JsonData);
                         var getFriendsResult = _mainLogic.GetFriendsPage(userPaginationReceiveModelGetFriends);
+
+                        _logger.Info($"User {_client.Id} has get friends " +
+                               $"result: {Enum.GetName(typeof(OperationsResults), getFriendsResult.OperationResult)} " +
+                               $"error info: {getFriendsResult.ErrorInfo}");
+
                         getFriendsResult.JsonData = _jsonStringSerializer.Serialize(getFriendsResult.JsonData as List<UserListResponseModel>);
                         _client.SendMessage(_jsonStringSerializer.Serialize(getFriendsResult));
                         break;
@@ -226,12 +336,25 @@ namespace ChatTCPServer.Services
                         var notificationUpdateResult = _mainLogic.UpdateNotification(notificationReceiveModelUpdate);
                         _client.SendMessage(_jsonStringSerializer.Serialize(notificationUpdateResult));
 
+                        _logger.Info($"User {_client.Id} has update notification " +
+                               $"notification id: {notificationReceiveModelUpdate.Id} " +
+                               $"from user id: {notificationReceiveModelUpdate.FromUserId} " +
+                               $"to user id: {notificationReceiveModelUpdate.ToUserId} " +
+                               $"message: {notificationReceiveModelUpdate.Message} " + 
+                               $"is accepted: {notificationReceiveModelUpdate.IsAccepted} " + 
+                               $"result: {Enum.GetName(typeof(OperationsResults), notificationUpdateResult.OperationResult)} " +
+                               $"error info: {notificationUpdateResult.ErrorInfo}");
+
                         if (notificationUpdateResult.OperationResult == OperationsResults.Successfully)
                             _clientsSynchronizer.SynchronizeAddingFriend(notificationReceiveModelUpdate);
                         break;
                     case ClientOperations.GetNotifications:
                         var notificationReceiveModelGetPage = _jsonStringSerializer.Deserialize<UserPaginationReceiveModel>(message.JsonData);
                         var getNotificationPageResult = _mainLogic.GetNotificationsPage(notificationReceiveModelGetPage);
+
+                        _logger.Info($"User {_client.Id} has get notifications " +
+                               $"result: {Enum.GetName(typeof(OperationsResults), getNotificationPageResult.OperationResult)} " +
+                               $"error info: {getNotificationPageResult.ErrorInfo}");
 
                         if (getNotificationPageResult.JsonData != null)
                             getNotificationPageResult.JsonData = _jsonStringSerializer.Serialize(getNotificationPageResult.JsonData as List<NotificationResponseModel>);
@@ -241,6 +364,10 @@ namespace ChatTCPServer.Services
                     case ClientOperations.GetUser:
                         var userReceiveModelGetUser = _jsonStringSerializer.Deserialize<UserReceiveModel>(message.JsonData);
                         var getUserResult = _mainLogic.GetUser(userReceiveModelGetUser);
+
+                        _logger.Info($"User {_client.Id} has get user {userReceiveModelGetUser.Id} info " +
+                               $"result: {Enum.GetName(typeof(OperationsResults), getUserResult.OperationResult)} " +
+                               $"error info: {getUserResult.ErrorInfo}");
 
                         if (getUserResult.JsonData != null)
                             getUserResult.JsonData = _jsonStringSerializer.Serialize(getUserResult.JsonData as UserResponseModel);
@@ -260,6 +387,7 @@ namespace ChatTCPServer.Services
             else
             {
                 Console.WriteLine("Ошибка целостности полученных данных");
+                _logger.Warn($"User {_client.Id} ошибка целостности полученных данных");
             }
         }
 
