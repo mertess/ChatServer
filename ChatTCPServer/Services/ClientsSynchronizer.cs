@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using NLog;
 using ServerBusinessLogic.BusinessLogic;
 using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.Interfaces;
@@ -41,6 +42,8 @@ namespace ChatTCPServer.Services
         /// </summary>
         private readonly ISerializer<string> _jsonStringSerializer;
 
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
 
         public ClientsSynchronizer(List<Client> connectedClients, MainLogic mainLogic, ISerializer<string> jsonStringSerializer)
         {
@@ -59,6 +62,7 @@ namespace ChatTCPServer.Services
 
             Parallel.ForEach(onlineUsers, (ou) =>
             {
+                _logger.Info($"Sync chat message {message.Id}: {message.UserMassage} for user {ou.Id} by user {message.UserId} from chat {message.ChatId}");
                 var responseJson = _jsonStringSerializer.Serialize(new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
@@ -80,6 +84,7 @@ namespace ChatTCPServer.Services
 
             Parallel.ForEach(onlineUsers, (ou) =>
             {
+                _logger.Info($"Sync deleting chat message {message.Id}: {message.UserMassage} for user {ou.Id} by user {message.FromUserId} from chat {message.ChatId}");
                 var responseJson = _jsonStringSerializer.Serialize(new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
@@ -105,6 +110,7 @@ namespace ChatTCPServer.Services
 
             Parallel.ForEach(chatUsers, (cu) =>
             {
+                _logger.Info($"Sync creating chat {chatResponseModel.Id} for user {cu.Id} by user {chatResponseModel.CreatorId}");
                 var responseJson = _jsonStringSerializer.Serialize(new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
@@ -135,6 +141,8 @@ namespace ChatTCPServer.Services
             };
             var responseForDeletedUsersJson = _jsonStringSerializer.Serialize(responseForDeletedUsers);
 
+            _logger.Info($"Sync updating chat {chatResponseModelAfterUpdate.Id}");
+
             //send responses for deleted users from chat
             Parallel.ForEach(deletedOnlineChatUsers, (cu) => cu.SendMessage(responseForDeletedUsersJson));
 
@@ -158,6 +166,7 @@ namespace ChatTCPServer.Services
 
             Parallel.ForEach(chatUsers, (cu) =>
             {
+                _logger.Info($"Sync deleting chat {chatReceiveModel.Id} for user {cu.Id} from user {chatReceiveModel.CreatorId}");
                 var responseJson = _jsonStringSerializer.Serialize(new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
@@ -183,6 +192,8 @@ namespace ChatTCPServer.Services
 
             if (_mainLogic.GetNotification(notification) == null)
             {
+                _logger.Info($"Sync notification for user {friendReceiveModel.FriendId} from user {friendReceiveModel.UserId}");
+
                 notification.IsAccepted = false;
                 notification.Message = "Пользователь " +
                     $"{(_mainLogic.GetUser(new UserReceiveModel() { Id = notification.FromUserId }).JsonData as UserResponseModel).UserName}" +
@@ -223,6 +234,8 @@ namespace ChatTCPServer.Services
                     FriendId = notificationReceiveModel.ToUserId
                 });
 
+                _logger.Info($"Sync adding to friends users: {notificationReceiveModel.FromUserId},{notificationReceiveModel.ToUserId}");
+
                 var user1 = _mainLogic.GetUser(new UserReceiveModel() { Id = notificationReceiveModel.FromUserId })?.JsonData as UserResponseModel;
                 var user2 = _mainLogic.GetUser(new UserReceiveModel() { Id = notificationReceiveModel.ToUserId })?.JsonData as UserResponseModel;
 
@@ -233,6 +246,7 @@ namespace ChatTCPServer.Services
                     {
                         Task.Run(() =>
                         {
+                            _logger.Info($"Sync send info about adding to friends for user {connectedUser1.Id}");
                             connectedUser1.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
                             {
                                 ErrorInfo = string.Empty,
@@ -255,6 +269,7 @@ namespace ChatTCPServer.Services
                     var connectedUser2 = _connectedClients.FirstOrDefault(c => c.Id == user2.Id);
                     if (connectedUser2 != null)
                     {
+                        _logger.Info($"Sync send info about adding to friends for user {connectedUser2.Id}");
                         Task.Run(() =>
                         {
                             connectedUser2.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
@@ -288,6 +303,7 @@ namespace ChatTCPServer.Services
 
             if(onlineFriend != null)
             {
+                _logger.Info($"Sync deleting friend {onlineFriend.Id} by user {friendReceiveModel.UserId}");
                 Task.Run(() =>
                 {
                     var responseJson = _jsonStringSerializer.Serialize(new OperationResultInfo()
@@ -311,6 +327,8 @@ namespace ChatTCPServer.Services
             var friends = _mainLogic.GetFriends(userReponseModel.Id);
 
             var friendOnline = _connectedClients.Where(cc => friends.FirstOrDefault(f => f.UserId == cc.Id) != null);
+
+            _logger.Info($"Sync online status of user {userReponseModel.Id} user is {userReponseModel.IsOnline}");
 
             Parallel.ForEach(friendOnline, (friend) =>
             {
@@ -353,7 +371,7 @@ namespace ChatTCPServer.Services
         {
             var result =  _mainLogic.UserProfileUpdate(new UserReceiveModel() { Id = client.Id, IsOnline = false });
 
-            if(result.OperationResult == OperationsResults.Successfully)
+            if (result.OperationResult == OperationsResults.Successfully)
                 SynchronizeOnlineStatus(_mainLogic.GetUser(new UserReceiveModel() { Id = client.Id }).JsonData as UserResponseModel);
         }
     }
