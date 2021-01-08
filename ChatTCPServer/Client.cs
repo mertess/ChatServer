@@ -4,6 +4,7 @@ using ServerBusinessLogic.BusinessLogic;
 using ServerDatabaseSystem.Implementation;
 using System;
 using System.Net.Sockets;
+using System.ServiceModel.Configuration;
 using System.Text;
 
 namespace ChatTCPServer
@@ -11,11 +12,18 @@ namespace ChatTCPServer
     public class Client
     {
         private readonly TcpClient _tcpClient;
+
         private readonly Server _server;
+
         private readonly NetworkStream _networkStream;
+
         private readonly RequestHandler _requestHandler;
+
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
         public int Id { set; get; }
+
+        private bool _isDisconnected;
 
         public Client(TcpClient tcpClient, Server server)
         {
@@ -29,7 +37,6 @@ namespace ChatTCPServer
             _tcpClient = tcpClient;
             _server = server;
             _networkStream = tcpClient.GetStream();
-            //Id = Guid.NewGuid().ToString();
             _server.AddConnection(this);
             Console.WriteLine("client connected");
         }
@@ -41,7 +48,10 @@ namespace ChatTCPServer
             {
                 while (true)
                 {
-                    ProcessClientOperation(GetMessage());
+                    _requestHandler.HandleRequest(GetMessage());
+
+                    if (_isDisconnected)
+                        return;
                 }
             }
             catch (Exception e)
@@ -56,8 +66,6 @@ namespace ChatTCPServer
                 Disconnect();
             }
         }
-
-        private void ProcessClientOperation(string messageJson) => _requestHandler.HandleRequest(messageJson);
 
         private string GetMessage()
         {
@@ -98,6 +106,8 @@ namespace ChatTCPServer
             if (_networkStream != null)
                 _networkStream.Close();
             _server.RemoveConnection(this);
+
+            _isDisconnected = true;
         }
     }
 }

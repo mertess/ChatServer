@@ -17,6 +17,8 @@
         FriendListListener,
         FriendListDeleteListener,
 
-        NotificationListListener
+        NotificationListListener,
+
+        EncodingListener
     }
 }

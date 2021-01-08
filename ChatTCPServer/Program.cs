@@ -7,8 +7,8 @@ namespace ChatTCPServer
 {
     class Program
     {
-        static string ip = "25.68.135.116";
-        static int port = 8668;
+        static string ip = "127.0.0.1";
+        static int port = 8667;
         static Logger logger = LogManager.GetCurrentClassLogger();
 
         static void Main(string[] args)
