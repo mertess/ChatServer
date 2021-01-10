@@ -196,6 +196,10 @@
     <Compile Include="Migrations\20201225062151_file_updating.designer.cs">
       <DependentUpon>20201225062151_file_updating.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20210108193101_change-chat-model.cs" />
+    <Compile Include="Migrations\20210108193101_change-chat-model.designer.cs">
+      <DependentUpon>20210108193101_change-chat-model.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\DatabaseContextModelSnapshot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\UserChatBinder.cs" />

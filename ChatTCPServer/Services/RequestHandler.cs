@@ -123,7 +123,7 @@ namespace ChatTCPServer.Services
                     case ClientOperations.Registration:
                         var userReceiveModelRegistration = _jsonStringSerializer.Deserialize<UserReceiveModel>(message.JsonData);
                         var registrationResult = _mainLogic.UserRegistration(userReceiveModelRegistration);
-                        var registrationResultJson = _jsonStringSerializer.Serialize(_mainLogic.UserRegistration(userReceiveModelRegistration));
+                        var registrationResultJson = _jsonStringSerializer.Serialize(registrationResult);
 
                         _logger.Info($"User registration - login: {userReceiveModelRegistration.Login} " +
                             $" password: {userReceiveModelRegistration.Password} " +
@@ -137,7 +137,7 @@ namespace ChatTCPServer.Services
                     case ClientOperations.UpdateProfile:
                         var userReceiveModelUpdateProfile = _jsonStringSerializer.Deserialize<UserReceiveModel>(message.JsonData);
                         var updateProfileResult = _mainLogic.UserProfileUpdate(userReceiveModelUpdateProfile);
-                        var updateProfileResultJson = _jsonStringSerializer.Serialize(_mainLogic.UserProfileUpdate(userReceiveModelUpdateProfile));
+                        var updateProfileResultJson = _jsonStringSerializer.Serialize(updateProfileResult);
 
                         _logger.Info($"User {_client.Id} - username: {userReceiveModelUpdateProfile.UserName} " +
                             $" password: {userReceiveModelUpdateProfile.Password} " +
@@ -236,8 +236,15 @@ namespace ChatTCPServer.Services
                                 $"chatname: {chatResponseModelAfterUpdate.ChatName} " +
                                 $"count users: {chatResponseModelAfterUpdate.CountUsers}");
 
-                            _clientsSynchronizer.SynchronizeUpdatingChat(chatResponseModelAfterUpdate, chatBeforeUpdate);
-                            chatUpdateResult.JsonData = _jsonStringSerializer.Serialize(chatResponseModelAfterUpdate);
+                            if (chatBeforeUpdate.CountUsers == 2 && chatResponseModelAfterUpdate.CountUsers > 2)
+                                _clientsSynchronizer.SynchronizeCreatingChat(chatResponseModelAfterUpdate);
+                            else
+                                _clientsSynchronizer.SynchronizeUpdatingChat(chatResponseModelAfterUpdate, chatBeforeUpdate);
+
+                            if (chatResponseModelAfterUpdate.CreatorId != _client.Id)
+                                chatUpdateResult.JsonData = null;
+                            else
+                                chatUpdateResult.JsonData = _jsonStringSerializer.Serialize(chatResponseModelAfterUpdate);
                         }
                         else
                             _logger.Info($"User {_client.Id} has not update chat " +
