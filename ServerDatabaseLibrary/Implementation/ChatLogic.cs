@@ -36,6 +36,9 @@ namespace ServerDatabaseSystem.Implementation
             //TODO : review
             using (DatabaseContext context = new DatabaseContext())
             {
+                if (string.IsNullOrEmpty(chatModel.ChatName) && chatModel.ChatUsers.Count() > 2)
+                    throw new Exception("Ошибка создания чата. Чат в котором больше 2ух людей должен иметь название");
+
                 context.Chats.Add(new Chat()
                 {
                     ChatName = chatModel.ChatName,
@@ -236,40 +239,49 @@ namespace ServerDatabaseSystem.Implementation
                             throw new Exception("Ошибка передачи данных, свойство Id модели не было установлено");
 
                         Chat cht = context.Chats.FirstOrDefault(c => c.Id == chatModel.Id.Value);
+
                         if (cht == null)
                             throw new Exception("Чата с таким идентификатором нет в БД");
 
-                        cht.ChatName = chatModel.ChatName;
-                        context.SaveChanges();
+                        if (cht.CountUsers > 2)
+                        {
+                            cht.ChatName = chatModel.ChatName ?? cht.ChatName;
+                            context.SaveChanges();
+                        }
 
                         if (chatModel.ChatUsers != null)
                         {
-                            cht.CountUsers = chatModel.ChatUsers.Count();
-                            cht.IsPrivate = chatModel.ChatUsers.Count() == 2 ? true : false;
-                            context.SaveChanges();
+                            if (cht.CountUsers == 2 && chatModel.ChatUsers.Count() > 2)
+                                return Create(chatModel);
+                            else
+                            {
+                                cht.CountUsers = chatModel.ChatUsers.Count();
+                                cht.IsPrivate = chatModel.ChatUsers.Count() == 2 ? true : false;
+                                context.SaveChanges();
 
-                            var chatUsersFromDb = context.RelationChatUsers.Where(rcu => rcu.ChatId == cht.Id).ToList();
+                                var chatUsersFromDb = context.RelationChatUsers.Where(rcu => rcu.ChatId == cht.Id).ToList();
 
-                            var addBindings = chatModel.ChatUsers
-                                .Where(cu => chatUsersFromDb.FirstOrDefault(rcu => rcu.UserId == cu.UserId) == null)
-                                .ToList();
+                                var addBindings = chatModel.ChatUsers
+                                    .Where(cu => chatUsersFromDb.FirstOrDefault(rcu => rcu.UserId == cu.UserId) == null)
+                                    .ToList();
 
-                            //adding users that isn't contains in database
-                            _userChatBinder.AddUsersToChat(addBindings, context);
-                            context.SaveChanges();
+                                //adding users that isn't contains in database
+                                _userChatBinder.AddUsersToChat(addBindings, context);
+                                context.SaveChanges();
 
-                            //removing users that isn't contains in chatModel
-                            var removeBindings = chatUsersFromDb
-                                .Where(rcu => chatModel.ChatUsers.FirstOrDefault(cu => cu.UserId == rcu.UserId) == null)
-                                .Select(rcu => new ChatUserReceiveModel()
-                                {
-                                    UserId = rcu.UserId,
-                                    ChatId = rcu.ChatId
-                                })
-                                .ToList();
+                                //removing users that isn't contains in chatModel
+                                var removeBindings = chatUsersFromDb
+                                    .Where(rcu => chatModel.ChatUsers.FirstOrDefault(cu => cu.UserId == rcu.UserId) == null)
+                                    .Select(rcu => new ChatUserReceiveModel()
+                                    {
+                                        UserId = rcu.UserId,
+                                        ChatId = rcu.ChatId
+                                    })
+                                    .ToList();
 
-                            _userChatBinder.RemoveUsersFromChat(removeBindings, context);
-                            context.SaveChanges();
+                                _userChatBinder.RemoveUsersFromChat(removeBindings, context);
+                                context.SaveChanges();
+                            }
                         }
 
                         transaction.Commit();

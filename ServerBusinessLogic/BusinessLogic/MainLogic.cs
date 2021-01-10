@@ -198,7 +198,7 @@ namespace ServerBusinessLogic.BusinessLogic
                 return new OperationResultInfo()
                 {
                     ErrorInfo = string.Empty,
-                    ToListener = ListenerType.ChatListDeleteListener,
+                    ToListener = ListenerType.ChatListListener,
                     OperationResult = OperationsResults.Successfully
                 };
             }

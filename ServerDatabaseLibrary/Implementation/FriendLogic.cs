@@ -132,9 +132,10 @@ namespace ServerDatabaseSystem.Implementation
                         UserName = f.User.UserName,
                         Picture = new FileModel()
                         {
+                            //TODO : что то не так
                             FileName = f.User.PictureName,
                             Extension = f.User.PictureExtension,
-                            BinaryForm = f.User.Picture
+                            BinaryForm = null
                         },
                         IsOnline = f.User.IsOnline
                     })

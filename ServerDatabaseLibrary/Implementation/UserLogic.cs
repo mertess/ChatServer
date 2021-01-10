@@ -7,6 +7,7 @@ using ServerDatabaseSystem.DbModels;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -34,7 +35,10 @@ namespace ServerDatabaseSystem.Implementation
                     Name = userModel.Name,
                     SecondName = userModel.SecondName,
                     Login = userModel.Login,
-                    Password = userModel.Password
+                    Password = userModel.Password,
+                    PictureExtension = ".jpg",
+                    PictureName = "default",
+                    Picture = File.ReadAllBytes(@"Images\default.jpg")
                 });
                 context.SaveChanges();
             }
@@ -171,9 +175,9 @@ namespace ServerDatabaseSystem.Implementation
                 usr.Gender = userModel.Gender ?? usr.Gender;
                 usr.City = userModel.City ?? usr.City;
 
-                usr.PictureName = userModel.File?.FileName;
-                usr.PictureExtension = userModel.File?.Extension;
-                usr.Picture = userModel.File?.BinaryForm;
+                usr.PictureName = userModel.File?.FileName ?? usr.PictureName;
+                usr.PictureExtension = userModel.File?.Extension ?? usr.PictureExtension;
+                usr.Picture = userModel.File?.BinaryForm ?? usr.Picture;
 
                 usr.IsOnline = userModel.IsOnline ?? usr.IsOnline;
                 context.SaveChanges();

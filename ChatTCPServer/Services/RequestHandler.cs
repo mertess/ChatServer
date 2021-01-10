@@ -3,6 +3,7 @@ using ServerBusinessLogic.BusinessLogic;
 using ServerBusinessLogic.Enums;
 using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.Interfaces;
+using ServerBusinessLogic.Models.ResponseModels.EncodingModels;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ReceiveModels.FriendModels;
 using ServerBusinessLogic.ReceiveModels.MessageModels;
@@ -16,6 +17,8 @@ using ServerBusinessLogic.TransmissionModels;
 using ServerDatabaseSystem.Implementation;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Text;
 
 namespace ChatTCPServer.Services
 {
@@ -25,11 +28,18 @@ namespace ChatTCPServer.Services
     public class RequestHandler
     {
         private readonly ISerializer<string> _jsonStringSerializer;
+
         private readonly ISerializer<byte[]> _jsonBinarySerializer;
+
         private readonly MainLogic _mainLogic;
+
         private readonly Client _client;
-        private readonly ClientsSynchronizer _clientsSynchronizer;
+
+        private ClientsSynchronizer _clientsSynchronizer;
+
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+        private Encoder _encoder;
 
         /// <summary>
         /// Constructor
@@ -57,7 +67,8 @@ namespace ChatTCPServer.Services
                 );
             _jsonStringSerializer = jsonStringSerializer;
             _jsonBinarySerializer = jsonBinarySerializer;
-            _clientsSynchronizer = new ClientsSynchronizer(connectedClients, _mainLogic, jsonStringSerializer);
+
+            _clientsSynchronizer = new ClientsSynchronizer(connectedClients, _mainLogic, jsonStringSerializer, _encoder);
         }
 
         /// <summary>
@@ -67,7 +78,17 @@ namespace ChatTCPServer.Services
         /// <param name="clientOperationMessage"></param>
         public void HandleRequest(string messageJson)
         {
-            var message = _jsonStringSerializer.Deserialize<ClientOperationMessage>(messageJson);
+            ClientOperationMessage message;
+
+            //the first request will initialize encoder, because its a encoder request
+            if (_encoder == null)
+                message = _jsonStringSerializer.Deserialize<ClientOperationMessage>(messageJson);
+            else
+            {
+                var stringDecryptedMessage = _encoder.Decryption(messageJson);
+                Console.WriteLine("received decrypted message : " + stringDecryptedMessage);
+                message = _jsonStringSerializer.Deserialize<ClientOperationMessage>(stringDecryptedMessage);
+            }
 
             //TODO : наверняка можно сделать лучше
             //switch will convert by compiler to hashtable
@@ -95,27 +116,28 @@ namespace ChatTCPServer.Services
                             _logger.Info($"User {_client.Id} authorization is unseccessfully");
 
                         var authorizationResultJson = _jsonStringSerializer.Serialize(authorizationResult);
+                        //_client.SendMessage(_encoder.Encryption(authorizationResultJson));
                         _client.SendMessage(authorizationResultJson);
                         break;
 
                     case ClientOperations.Registration:
                         var userReceiveModelRegistration = _jsonStringSerializer.Deserialize<UserReceiveModel>(message.JsonData);
                         var registrationResult = _mainLogic.UserRegistration(userReceiveModelRegistration);
-                        var registrationResultJson = _jsonStringSerializer.Serialize(_mainLogic.UserRegistration(userReceiveModelRegistration));
+                        var registrationResultJson = _jsonStringSerializer.Serialize(registrationResult);
 
                         _logger.Info($"User registration - login: {userReceiveModelRegistration.Login} " +
                             $" password: {userReceiveModelRegistration.Password} " +
                             $"result: {Enum.GetName(typeof(OperationsResults), registrationResult.OperationResult)} " +
                             $"Error info : {registrationResult.ErrorInfo}");
 
+                        //_client.SendMessage(_encoder.Encryption(registrationResultJson));
                         _client.SendMessage(registrationResultJson);
-
                         break;
 
                     case ClientOperations.UpdateProfile:
                         var userReceiveModelUpdateProfile = _jsonStringSerializer.Deserialize<UserReceiveModel>(message.JsonData);
                         var updateProfileResult = _mainLogic.UserProfileUpdate(userReceiveModelUpdateProfile);
-                        var updateProfileResultJson = _jsonStringSerializer.Serialize(_mainLogic.UserProfileUpdate(userReceiveModelUpdateProfile));
+                        var updateProfileResultJson = _jsonStringSerializer.Serialize(updateProfileResult);
 
                         _logger.Info($"User {_client.Id} - username: {userReceiveModelUpdateProfile.UserName} " +
                             $" password: {userReceiveModelUpdateProfile.Password} " +
@@ -129,6 +151,7 @@ namespace ChatTCPServer.Services
                             $" result: {Enum.GetName(typeof(OperationsResults), updateProfileResult.OperationResult)}" +
                             $" Error info : {updateProfileResult.ErrorInfo}");
 
+                        //_client.SendMessage(_encoder.Encryption(updateProfileResultJson));
                         _client.SendMessage(updateProfileResultJson);
                         break;
 
@@ -143,6 +166,7 @@ namespace ChatTCPServer.Services
                         getUsersResult.JsonData = _jsonStringSerializer.Serialize(getUsersResult.JsonData as List<UserListResponseModel>);
                         var getUsersResultJson = _jsonStringSerializer.Serialize(getUsersResult);
 
+                        //_client.SendMessage(_encoder.Encryption(getUsersResultJson));
                         _client.SendMessage(getUsersResultJson);
                         break;
 
@@ -167,6 +191,7 @@ namespace ChatTCPServer.Services
                                 $"result: {Enum.GetName(typeof(OperationsResults), messageSendResult.OperationResult)} " +
                                 $"error info: {messageSendResult.ErrorInfo}");
 
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(messageSendResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(messageSendResult));
                         break;
 
@@ -192,6 +217,7 @@ namespace ChatTCPServer.Services
                                 $"result: {Enum.GetName(typeof(OperationsResults), chatCreateResult.OperationResult)} " +
                                 $"error info: {chatCreateResult.ErrorInfo}");
 
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(chatCreateResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(chatCreateResult));
                         break;
 
@@ -210,20 +236,30 @@ namespace ChatTCPServer.Services
                                 $"chatname: {chatResponseModelAfterUpdate.ChatName} " +
                                 $"count users: {chatResponseModelAfterUpdate.CountUsers}");
 
-                            _clientsSynchronizer.SynchronizeUpdatingChat(chatResponseModelAfterUpdate, chatBeforeUpdate);
-                            chatUpdateResult.JsonData = _jsonStringSerializer.Serialize(chatResponseModelAfterUpdate);
+                            if (chatBeforeUpdate.CountUsers == 2 && chatResponseModelAfterUpdate.CountUsers > 2)
+                                _clientsSynchronizer.SynchronizeCreatingChat(chatResponseModelAfterUpdate);
+                            else
+                                _clientsSynchronizer.SynchronizeUpdatingChat(chatResponseModelAfterUpdate, chatBeforeUpdate);
+
+                            if (chatResponseModelAfterUpdate.CreatorId != _client.Id)
+                                chatUpdateResult.JsonData = null;
+                            else
+                                chatUpdateResult.JsonData = _jsonStringSerializer.Serialize(chatResponseModelAfterUpdate);
                         }
                         else
                             _logger.Info($"User {_client.Id} has not update chat " +
                                 $"result: {Enum.GetName(typeof(OperationsResults), chatUpdateResult.OperationResult)} " +
                                 $"error info: {chatUpdateResult.ErrorInfo}");
 
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(chatUpdateResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(chatUpdateResult));
                         break;
 
                     case ClientOperations.DeleteChat:
                         var chatReceiveModelDelete = _jsonStringSerializer.Deserialize<ChatReceiveModel>(message.JsonData);
                         var chatDeleteResult = _mainLogic.ChatDelete(chatReceiveModelDelete);
+
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(chatDeleteResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(chatDeleteResult));
 
                         _logger.Info($"User {_client.Id} has delete chat " +
@@ -243,6 +279,7 @@ namespace ChatTCPServer.Services
                                 $"error info: {getChatsResult.ErrorInfo}");
 
                         getChatsResult.JsonData = _jsonStringSerializer.Serialize(getChatsResult.JsonData as List<ChatResponseModel>);
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(getChatsResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(getChatsResult));
                         break;
                     //---
@@ -267,12 +304,14 @@ namespace ChatTCPServer.Services
                                 $"result: {Enum.GetName(typeof(OperationsResults), updateMessageResult.OperationResult)} " +
                                 $"error info: {updateMessageResult.ErrorInfo}");
 
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(updateMessageResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(updateMessageResult));
                         break;
 
                     case ClientOperations.DeleteMessage:
                         var messageReceiveModelDelete = _jsonStringSerializer.Deserialize<MessageReceiveModel>(message.JsonData);
                         var deleteMessageResult = _mainLogic.DeleteMessage(messageReceiveModelDelete);
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(deleteMessageResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(deleteMessageResult));
 
                         _logger.Info($"User {_client.Id} has delete message " +
@@ -295,7 +334,9 @@ namespace ChatTCPServer.Services
                                $"error info: {getChatMessagesResult.ErrorInfo}");
 
                         getChatMessagesResult.JsonData = _jsonStringSerializer.Serialize(getChatMessagesResult.JsonData as List<MessageResponseModel>);
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(getChatMessagesResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(getChatMessagesResult));
+
                         break;
 
                     case ClientOperations.AddFriend:
@@ -309,6 +350,7 @@ namespace ChatTCPServer.Services
                     case ClientOperations.DeleteFriend:
                         var friendReceiveModelDelete = _jsonStringSerializer.Deserialize<FriendReceiveModel>(message.JsonData);
                         var friendDeleteResult = _mainLogic.DeleteFriend(friendReceiveModelDelete);
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(friendDeleteResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(friendDeleteResult));
 
                         _logger.Info($"User {_client.Id} has delete friend {friendReceiveModelDelete.FriendId} " +
@@ -328,12 +370,15 @@ namespace ChatTCPServer.Services
                                $"error info: {getFriendsResult.ErrorInfo}");
 
                         getFriendsResult.JsonData = _jsonStringSerializer.Serialize(getFriendsResult.JsonData as List<UserListResponseModel>);
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(getFriendsResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(getFriendsResult));
+
                         break;
 
                     case ClientOperations.UpdateNotification:
                         var notificationReceiveModelUpdate = _jsonStringSerializer.Deserialize<NotificationReceiveModel>(message.JsonData);
                         var notificationUpdateResult = _mainLogic.UpdateNotification(notificationReceiveModelUpdate);
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(notificationUpdateResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(notificationUpdateResult));
 
                         _logger.Info($"User {_client.Id} has update notification " +
@@ -359,7 +404,9 @@ namespace ChatTCPServer.Services
                         if (getNotificationPageResult.JsonData != null)
                             getNotificationPageResult.JsonData = _jsonStringSerializer.Serialize(getNotificationPageResult.JsonData as List<NotificationResponseModel>);
 
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(getNotificationPageResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(getNotificationPageResult));
+
                         break;
                     case ClientOperations.GetUser:
                         var userReceiveModelGetUser = _jsonStringSerializer.Deserialize<UserReceiveModel>(message.JsonData);
@@ -372,9 +419,58 @@ namespace ChatTCPServer.Services
                         if (getUserResult.JsonData != null)
                             getUserResult.JsonData = _jsonStringSerializer.Serialize(getUserResult.JsonData as UserResponseModel);
 
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(getUserResult)));
                         _client.SendMessage(_jsonStringSerializer.Serialize(getUserResult));
+
+                        break;
+                    case ClientOperations.SendEncodingPublicKey:
+
+                        var encodingModel = _jsonStringSerializer.Deserialize<EncodingModel>(message.JsonData);
+
+                        if (encodingModel.PublicKey != null)
+                        {
+                            _logger.Info($"Get client public key: {encodingModel.PublicKey[0]}, {encodingModel.PublicKey[1]}");
+
+                            var serverPublicKey = new int[] 
+                            {
+                                int.Parse(ConfigurationManager.AppSettings["publicServerKeyPart1"]),
+                                int.Parse(ConfigurationManager.AppSettings["serverKeyPart2"])
+                            };
+
+                            _encoder = new Encoder(encodingModel.PublicKey, new int[]
+                            {
+                                int.Parse(ConfigurationManager.AppSettings["privateServerKeyPart1"]),
+                                int.Parse(ConfigurationManager.AppSettings["serverKeyPart2"])
+                            });
+
+                            _client.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
+                            {
+                                ErrorInfo = string.Empty,
+                                OperationResult = OperationsResults.Successfully,
+                                ToListener = ListenerType.EncodingListener,
+                                JsonData = _jsonStringSerializer.Serialize(new EncodingModel(){ PublicKey = serverPublicKey })
+                            }));
+                        }
+                        else
+                        {
+                            _logger.Warn($"Client public key is null");
+                            _client.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
+                            {
+                                ErrorInfo = "Не задан публичный ключ клиента",
+                                OperationResult = OperationsResults.Unsuccessfully,
+                                ToListener = ListenerType.EncodingListener
+                            }));
+                            _client.Disconnect();
+                        }
                         break;
                     default:
+                        //_client.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(new OperationResultInfo()
+                        //{
+                        //    ErrorInfo = "Незарегистрированная операция",
+                        //    OperationResult = OperationsResults.Unsuccessfully,
+                        //    JsonData = null
+                        //})));
+
                         _client.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
                         {
                             ErrorInfo = "Незарегистрированная операция",

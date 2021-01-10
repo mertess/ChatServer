@@ -9,7 +9,6 @@ namespace ServerDatabaseSystem.DbModels
     {
         public int Id { get; set; }
 
-        [Required]
         public string ChatName { get; set; }
 
         [Required]
