@@ -37,8 +37,8 @@ namespace ChatTCPTestClient
 {
     class Program
     {
-        static string serverIp = "25.68.135.116";
-        static int serverPort = 8668;
+        static string serverIp = "127.0.0.1";
+        static int serverPort = 8667;
         static TcpClient tcpClient;
         static NetworkStream networkStream;
         static UserResponseModel user;

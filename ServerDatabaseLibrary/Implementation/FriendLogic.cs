@@ -75,32 +75,20 @@ namespace ServerDatabaseSystem.Implementation
         {
             using (var context = new DatabaseContext())
             {
-                return string.IsNullOrEmpty(model.SearchingUserName) ?
+                var friends = string.IsNullOrEmpty(model.SearchingUserName) ?
                     context.Friends
                     .Where(f => f.UserId == model.UserId)
-                    .Skip(model.Page * 15)
-                    .Take(15)
-                    //danger
                     .Select(f => context.Users.FirstOrDefault(u => u.Id == f.FriendId))
-                    .Select(u => new UserListResponseModel()
-                    {
-                        UserId = u.Id,
-                        UserName = u.UserName,
-                        Picture = new FileModel()
-                        {
-                            FileName = u.PictureName,
-                            Extension = u.PictureExtension,
-                            BinaryForm = u.Picture
-                        },
-                        IsOnline = u.IsOnline
-                    })
-                    .ToList()
                     :
-                    context.Friends
+                     context.Friends
                     .Where(f => f.UserId == model.UserId)
                     .Select(f => context.Users.FirstOrDefault(u => u.Id == f.FriendId))
                     .ToList()
-                    .Where(u => u.UserName.StartsWith(model.SearchingUserName, true, CultureInfo.InvariantCulture))
+                    .Where(u => u.UserName.StartsWith(model.SearchingUserName, true, CultureInfo.InvariantCulture));
+
+                friends.Reverse();
+
+                return friends
                     .Skip(model.Page * 15)
                     .Take(15)
                     .Select(u => new UserListResponseModel()
@@ -123,6 +111,12 @@ namespace ServerDatabaseSystem.Implementation
         {
             using (var context = new DatabaseContext())
             {
+                var friends = context.Friends
+                    .Where(f => f.FriendId == userId)
+                    .Include(f => f.User);
+
+                friends.Reverse();
+
                 return context.Friends
                     .Where(f => f.FriendId == userId)
                     .Include(f => f.User)
@@ -132,10 +126,9 @@ namespace ServerDatabaseSystem.Implementation
                         UserName = f.User.UserName,
                         Picture = new FileModel()
                         {
-                            //TODO : что то не так
                             FileName = f.User.PictureName,
                             Extension = f.User.PictureExtension,
-                            BinaryForm = null
+                            BinaryForm = f.User.Picture
                         },
                         IsOnline = f.User.IsOnline
                     })
