@@ -18,6 +18,7 @@ using ServerBusinessLogic.TransmissionModels;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -62,6 +63,8 @@ namespace ChatTCPTestClient
                 Console.InputEncoding = Encoding.Unicode;
                 tcpClient = new TcpClient();
                 tcpClient.Connect(IPAddress.Parse(serverIp), serverPort);
+
+                encoder = new ChatTCPServer.Services.Encoder();
                 networkStream = tcpClient.GetStream();
 
                 DataManager.AddListener(ListenerType.AuthorizationListener, AuthorizationListener);
@@ -76,7 +79,6 @@ namespace ChatTCPTestClient
                 DataManager.AddListener(ListenerType.NotificationListListener, NotificationListListener);
                 DataManager.AddListener(ListenerType.UserInfoListener, UserInfoListener);
                 DataManager.AddListener(ListenerType.UserUpdateProfileListener, UserUpdateProfileListener);
-                DataManager.AddListener(ListenerType.EncodingListener, EncodingListener);
 
                 Task.Run(() => RecieveMessages());
              
@@ -105,7 +107,7 @@ namespace ChatTCPTestClient
                             var parameters = Console.ReadLine();
                             GetUsers(new UserPaginationReceiveModel()
                             {
-                                UserId = user.Id,
+                                UserId = user.UserId,
                                 Page = Convert.ToInt32(parameters.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0]),
                                 SearchingUserName = parameters.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Count() == 2 ? parameters.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1] : string.Empty
                             });
@@ -125,7 +127,7 @@ namespace ChatTCPTestClient
                                 };
                             UpdateProfile(new UserReceiveModel()
                             {
-                                Id = user.Id,
+                                Id = user.UserId,
                                 UserName = parameters2[0],
                                 Password = parameters2[1],
                                 Name = parameters2[2],
@@ -154,12 +156,12 @@ namespace ChatTCPTestClient
                             //добавляем себя в этот список
                             users1.Add(new ChatUserReceiveModel()
                             {
-                                UserId = user.Id
+                                UserId = user.UserId
                             });
                             CreateChat(new ChatReceiveModel()
                             {
                                 ChatName = parameters3.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0],
-                                CreatorId = user.Id,
+                                CreatorId = user.UserId,
                                 DateOfCreation = DateTime.Now,
                                 ChatUsers = users1
                             });
@@ -181,14 +183,14 @@ namespace ChatTCPTestClient
                             //добавляем себя в этот список
                             users2.Add(new ChatUserReceiveModel()
                             {
-                                UserId = user.Id,
+                                UserId = user.UserId,
                                 ChatId = currentChat.Id
                             });
                             UpdateChat(new ChatReceiveModel()
                             {
                                 Id = currentChat.Id,
                                 ChatName = parameters4.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1],
-                                CreatorId = user.Id,
+                                CreatorId = user.UserId,
                                 ChatUsers = users2
                             });
                             Console.WriteLine();
@@ -215,7 +217,7 @@ namespace ChatTCPTestClient
                             var page = Convert.ToInt32(Console.ReadLine());
                             GetChats(new UserPaginationReceiveModel()
                             {
-                                UserId = user.Id,
+                                UserId = user.UserId,
                                 Page = page
                             });
                             Console.WriteLine();
@@ -226,7 +228,7 @@ namespace ChatTCPTestClient
                             var userId = Convert.ToInt32(Console.ReadLine());
                             SendInviteToFriend(new FriendReceiveModel()
                             {
-                                UserId = user.Id,
+                                UserId = user.UserId,
                                 FriendId = userId
                             });
                             Console.WriteLine();
@@ -237,7 +239,7 @@ namespace ChatTCPTestClient
                             var parameters6 = Console.ReadLine();
                             GetFriends(new UserPaginationReceiveModel()
                             {
-                                UserId = user.Id,
+                                UserId = user.UserId,
                                 Page = Convert.ToInt32(parameters6.Split(new char[]{ ' ' }, StringSplitOptions.RemoveEmptyEntries)[0]),
                                 SearchingUserName = parameters6.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Count() == 2 ? parameters6.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1] : string.Empty
                             });
@@ -252,7 +254,7 @@ namespace ChatTCPTestClient
                             {
                                 Id = notification.Id,
                                 FromUserId = notification.FromUserId,
-                                ToUserId = user.Id,
+                                ToUserId = user.UserId,
                                 IsAccepted = Convert.ToBoolean(parameters7.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1])
                             });
                             Console.WriteLine();
@@ -263,16 +265,35 @@ namespace ChatTCPTestClient
                             var page3 = Convert.ToInt32(Console.ReadLine());
                             GetNotifications(new UserPaginationReceiveModel()
                             {
-                                UserId = user.Id,
+                                UserId = user.UserId,
                                 Page = page3
                             });
                             Console.WriteLine();
                             break;
                         case "!send_message":
                             Console.Clear();
-                            Console.WriteLine("paramenters: chatId, message");
+                            Console.WriteLine("paramenters: chatId, message, send file?");
                             var parameters8 = Console.ReadLine().Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
-                            SendMessageToChat(parameters8[1], Convert.ToInt32(parameters8[0]));
+                            FileModel model = default;
+                            if(bool.Parse(parameters8[2]))
+                            {
+                                Console.WriteLine("filePath:");
+                                var filePath1 = Console.ReadLine();
+                                model = new FileModel()
+                                {
+                                    FileName = filePath1.Replace(Path.GetExtension(filePath1), "").Split(new char[] { '\\' }).Last(),
+                                    Extension = Path.GetExtension(filePath1),
+                                    BinaryForm = File.ReadAllBytes(filePath1)
+                                };
+                            }
+                            SendMessageToChat(new MessageReceiveModel()
+                            {
+                                Date = DateTime.Now,
+                                FromUserId = user.UserId,
+                                UserMassage = parameters8[1],
+                                ChatId = Convert.ToInt32(parameters8[0]),
+                                File = model
+                            });
                             Console.WriteLine();
                             break;
                         case "!get_messages":
@@ -288,16 +309,29 @@ namespace ChatTCPTestClient
                             break;
                         case "!update_message":
                             Console.Clear();
-                            Console.WriteLine("parameters: chatId, messageId, message");
+                            Console.WriteLine("parameters: chatId, messageId, message, change file?");
                             var parameters10 = Console.ReadLine().Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                            FileModel fm = default;
+                            if(bool.Parse(parameters10[2]))
+                            {
+                                Console.WriteLine("filePath:");
+                                var filePath2 = Console.ReadLine();
+                                fm = new FileModel()
+                                {
+                                    FileName = filePath2.Replace(Path.GetExtension(filePath2), "").Split(new char[] { '\\' }).Last(),
+                                    Extension = Path.GetExtension(filePath2),
+                                    BinaryForm = File.ReadAllBytes(filePath2)
+                                };
+                            }
                             UpdateMessage(new MessageReceiveModel()
                             {
                                 //для получения списка пользователей чата при синхронизации
                                 ChatId = Convert.ToInt32(parameters10[0].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0]),
                                 //для того, чтобы исключить текущего пользователя из списка пользователей для синхронизации
-                                FromUserId = user.Id,
+                                FromUserId = user.UserId,
                                 Id = Convert.ToInt32(parameters10[0].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1]),
-                                UserMassage = parameters10[1]
+                                UserMassage = parameters10[1],
+                                File = fm
                             });
                             Console.WriteLine();
                             break;
@@ -309,7 +343,7 @@ namespace ChatTCPTestClient
                             {
                                 Id = Convert.ToInt32(parameters11[0]),
                                 ChatId = Convert.ToInt32(parameters11[1]),
-                                FromUserId = user.Id
+                                FromUserId = user.UserId
                             });
                             Console.WriteLine();
                             break;
@@ -319,7 +353,7 @@ namespace ChatTCPTestClient
                             var friendId = Convert.ToInt32(Console.ReadLine());
                             DeleteFriend(new FriendReceiveModel()
                             {
-                                UserId = user.Id,
+                                UserId = user.UserId,
                                 FriendId = friendId
                             });
                             break;
@@ -332,16 +366,6 @@ namespace ChatTCPTestClient
                                 Id = userInfoId
                             });
                             Console.WriteLine();
-                            break;
-                        case "!set_keys":
-                            KeysConfiguration(new EncodingModel()
-                            {
-                                PublicKey = new int[]
-                                {
-                                    Convert.ToInt32(ConfigurationManager.AppSettings["publicClientKeyPart1"]),
-                                    Convert.ToInt32(ConfigurationManager.AppSettings["clientKeyPart2"]),
-                                }
-                            });
                             break;
                         case "!help":
                             Console.Clear();
@@ -365,7 +389,6 @@ namespace ChatTCPTestClient
                             Console.WriteLine("delete_message +");
                             Console.WriteLine("delete_friend +");
                             Console.WriteLine("get_user +");
-                            Console.WriteLine("set_keys");
                             Console.WriteLine("show_users");
                             Console.WriteLine("show_chats");
                             Console.WriteLine("show_chat_info");
@@ -446,17 +469,6 @@ namespace ChatTCPTestClient
         }
 
         #region user operations
-        #region app
-        static void KeysConfiguration(EncodingModel encodingModel)
-        {
-            SendMessage(new ClientOperationMessage()
-            {
-                Operation = ClientOperations.SendEncodingPublicKey,
-                JsonData = serializer.Serialize(encodingModel)
-            });
-        }
-
-        #endregion
         #region users
         static void Registration(string login, string password)
         {
@@ -525,18 +537,12 @@ namespace ChatTCPTestClient
             });
         }
 
-        static void SendMessageToChat(string message, int chatId)
+        static void SendMessageToChat(MessageReceiveModel messageReceiveModel)
         {
             SendMessage(new ClientOperationMessage()
             {
                 Operation = ClientOperations.SendMessage,
-                JsonData = serializer.Serialize(new MessageReceiveModel()
-                {
-                    Date = DateTime.Now,
-                    FromUserId = user.Id,
-                    UserMassage = message,
-                    ChatId = chatId
-                })
+                JsonData = serializer.Serialize(messageReceiveModel)
             });
         }
 
@@ -646,17 +652,9 @@ namespace ChatTCPTestClient
 
         static void SendMessage(ClientOperationMessage clientOperationMessage)
         {
-            byte[] data;
-            if (encoder == null)
-            {
-                data = Encoding.UTF8.GetBytes(serializer.Serialize(clientOperationMessage));
-                Console.WriteLine("sended data : " + serializer.Serialize(clientOperationMessage));
-            }
-            else
-            {
-                data = Encoding.UTF8.GetBytes(encoder.Encryption(serializer.Serialize(clientOperationMessage)));
-                Console.WriteLine("sended data : " + encoder.Encryption(serializer.Serialize(clientOperationMessage)));
-            }
+            byte[] data = encoder.Encryption(serializer.Serialize(clientOperationMessage));
+            
+            Console.WriteLine("sended data : " + encoder.Encryption(serializer.Serialize(clientOperationMessage)));
 
             Console.WriteLine("data send length = " + data.Length);
             networkStream.Write(data, 0, data.Length);
@@ -665,28 +663,27 @@ namespace ChatTCPTestClient
         static void RecieveMessages()
         {
             byte[] data = new byte[256];
+            List<byte> byteMessage = new List<byte>();
+
             while (true)
             {
-                StringBuilder stringBuilder = new StringBuilder();
                 do
                 {
                     //!!! Считываем количество прочитанных байтов, а затем именно это кол-во переводим в строку!!!
                     //!!! Если переводить в строку постоянное колиество байтов из буффера - то в случае, если прочитанных байт будет меньше
                     //!!! чем мы переводим в строку - то мы получим пробелы, и вся десериализация провалится. 
                     int count = networkStream.Read(data, 0, 256);
-                    stringBuilder.Append(Encoding.UTF8.GetString(data, 0, count));
+
+                    for(int i = 0; i < count; i++)
+                    {
+                        byteMessage.Add(data[i]);
+                    }
                 } while (networkStream.DataAvailable);
 
                 try
                 {
-                    OperationResultInfo obj;
-                    if (encoder == null)
-                        obj = serializer.Deserialize<OperationResultInfo>(stringBuilder.ToString());
-                    else
-                        obj = serializer.Deserialize<OperationResultInfo>(encoder.Decryption(stringBuilder.ToString()));
-                    Console.WriteLine("received data : " + stringBuilder.ToString());
-
-                    stringBuilder.Clear();
+                    OperationResultInfo obj = serializer.Deserialize<OperationResultInfo>(encoder.Decryption(byteMessage.ToArray()));
+                    byteMessage.Clear();
                     DataManager.HandleData(obj.ToListener, obj);
                 }
                 catch (Exception ex) { Console.WriteLine(ex.Message); }
@@ -705,7 +702,7 @@ namespace ChatTCPTestClient
             user = serializer.Deserialize<UserResponseModel>(json);
             if (user != null)
             {
-                Console.WriteLine("UserId = " + user.Id);
+                Console.WriteLine("UserId = " + user.UserId);
                 Console.WriteLine("UserName = " + user.UserName);
                 Console.WriteLine("Name = " + user.Name);
                 Console.WriteLine("Second name = " + user.SecondName);
@@ -766,6 +763,11 @@ namespace ChatTCPTestClient
                             messages[data.ChatId].Add(data);
                         else
                             message = data;
+                    }
+
+                    if (data.File != null)
+                    {
+                        File.WriteAllBytes(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, data.File.FileName + data.File.Extension), data.File.BinaryForm); 
                     }
                 }
                 else
@@ -876,19 +878,26 @@ namespace ChatTCPTestClient
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
-            var data = serializer.Deserialize<MessageResponseModel>(operationResultInfo.JsonData.ToString());
-            Console.WriteLine("--Message for deleting received by synchronization from server : ");
-            Console.WriteLine("MessageId = " + data.Id);
-            Console.WriteLine("UserId = " + data.UserId);
-            Console.WriteLine("ChatId = " + data.ChatId);
-            Console.WriteLine("Message = " + data.UserMassage);
-
-            if (messages.ContainsKey(data.ChatId))
+            try
             {
-                var deletingMessage = messages[data.ChatId].FirstOrDefault(m => m.Id == data.Id);
-                if (deletingMessage != null)
-                    messages[data.ChatId].Remove(deletingMessage);
+                if (operationResultInfo.JsonData != null)
+                {
+                    var data = serializer.Deserialize<MessageResponseModel>(operationResultInfo.JsonData.ToString());
+                    Console.WriteLine("--Message for deleting received by synchronization from server : ");
+                    Console.WriteLine("MessageId = " + data.Id);
+                    Console.WriteLine("UserId = " + data.UserId);
+                    Console.WriteLine("ChatId = " + data.ChatId);
+                    Console.WriteLine("Message = " + data.UserMassage);
+
+                    if (messages.ContainsKey(data.ChatId))
+                    {
+                        var deletingMessage = messages[data.ChatId].FirstOrDefault(m => m.Id == data.Id);
+                        if (deletingMessage != null)
+                            messages[data.ChatId].Remove(deletingMessage);
+                    }
+                }
             }
+            catch { }
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine();
         }
@@ -900,15 +909,19 @@ namespace ChatTCPTestClient
             Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
             Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
-            var data = serializer.Deserialize<List<UserListResponseModel>>(operationResultInfo.JsonData.ToString());
-            Console.WriteLine("--Users received by user action : ");
-            foreach (var user in data)
+            try
             {
-                Console.WriteLine("UserId = " + user.UserId);
-                Console.WriteLine("Username = " + user.UserName);
-            }
+                var data = serializer.Deserialize<List<UserListResponseModel>>(operationResultInfo.JsonData.ToString());
+                Console.WriteLine("--Users received by user action : ");
+                foreach (var user in data)
+                {
+                    Console.WriteLine("UserId = " + user.UserId);
+                    Console.WriteLine("Username = " + user.UserName);
+                }
 
-            users = data;
+                users = data;
+            }
+            catch { }
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine();
         }
@@ -925,7 +938,7 @@ namespace ChatTCPTestClient
             try
             {
                 Console.WriteLine("--User received by user action : ");
-                Console.WriteLine("user id = " + data.Id);
+                Console.WriteLine("user id = " + data.UserId);
                 Console.WriteLine("username = " + data.UserName);
                 Console.WriteLine("name = " + data.Name);
                 Console.WriteLine("second name = " + data.SecondName);
@@ -1045,45 +1058,25 @@ namespace ChatTCPTestClient
             Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
             try
             {
-                var data = serializer.Deserialize<UserResponseModel>(operationResultInfo.JsonData.ToString());
-                Console.WriteLine();
-                Console.WriteLine("--User received by user action : ");
-                Console.WriteLine("user id = " + data.Id);
-                Console.WriteLine("username = " + data.UserName);
-                Console.WriteLine("name = " + data.Name);
-                Console.WriteLine("second name = " + data.SecondName);
-                Console.WriteLine("phone = " + data.PhoneNumber);
-                Console.WriteLine("gender = " + Enum.GetName(typeof(Gender), data.Gender));
-                Console.WriteLine("city = " + Enum.GetName(typeof(City), data.City));
-                Console.WriteLine("country = " + Enum.GetName(typeof(Country), data.Country));
-                Console.WriteLine("is online = " + data.IsOnline);
+                if (operationResultInfo.JsonData != null)
+                {
+                    var data = serializer.Deserialize<UserResponseModel>(operationResultInfo.JsonData.ToString());
+                    Console.WriteLine();
+                    Console.WriteLine("--User received by user action : ");
+                    Console.WriteLine("user id = " + data.UserId);
+                    Console.WriteLine("username = " + data.UserName);
+                    Console.WriteLine("name = " + data.Name);
+                    Console.WriteLine("second name = " + data.SecondName);
+                    Console.WriteLine("phone = " + data.PhoneNumber);
+                    Console.WriteLine("gender = " + Enum.GetName(typeof(Gender), data.Gender));
+                    Console.WriteLine("city = " + Enum.GetName(typeof(City), data.City));
+                    Console.WriteLine("country = " + Enum.GetName(typeof(Country), data.Country));
+                    Console.WriteLine("is online = " + data.IsOnline);
+                }
             }
             catch { }
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine();
-        }
-
-        static void EncodingListener(OperationResultInfo operationResultInfo)
-        {
-            Console.WriteLine();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
-            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
-            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
-            var data = serializer.Deserialize<EncodingModel>(operationResultInfo.JsonData.ToString());
-            if(data != null)
-            {
-                encoder = new ChatTCPServer.Services.Encoder(data.PublicKey, new int[]
-                {
-                    Convert.ToInt32(ConfigurationManager.AppSettings["privateClientKeyPart1"]),
-                    Convert.ToInt32(ConfigurationManager.AppSettings["clientKeyPart2"]),
-                });
-
-                Console.WriteLine();
-                Console.WriteLine("--EncodingKeys received by app initialization : ");
-                Console.WriteLine("server public key part 1 = " + data.PublicKey[0]);
-                Console.WriteLine("server public key part 2 = " + data.PublicKey[1]);
-            }
         }
 
         #endregion

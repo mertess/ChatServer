@@ -3,6 +3,8 @@ using NLog;
 using ServerBusinessLogic.BusinessLogic;
 using ServerDatabaseSystem.Implementation;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.ServiceModel.Configuration;
 using System.Text;
@@ -30,7 +32,6 @@ namespace ChatTCPServer
             //wtf
             _requestHandler = new RequestHandler(
                 new JsonStringSerializer(),
-                new JsonBinarySerializer(),
                 this,
                 server.ConnectedClients);
 
@@ -67,31 +68,31 @@ namespace ChatTCPServer
             }
         }
 
-        private string GetMessage()
+        private byte[] GetMessage()
         {
             byte[] data = new byte[256];
-            StringBuilder stringBuilder = new StringBuilder();
+            List<byte> byteMessage = new List<byte>();
             do
             {
-                int countBytes = _networkStream.Read(data, 0, 256);
-                stringBuilder.Append(Encoding.UTF8.GetString(data, 0, countBytes));
+                var count = _networkStream.Read(data, 0, 256);
+
+                for(int i = 0; i < count; i++)
+                {
+                    byteMessage.Add(data[i]);
+                }
             } while (_networkStream.DataAvailable);
-            Console.WriteLine("Получено сообщение - " + Id + " " + stringBuilder.ToString());
 
-            _logger.Info($"Getted message from user {Id}: {stringBuilder}");
-
-            return stringBuilder.ToString();
+            return byteMessage.ToArray();
         }
 
-        public void SendMessage(string message)
+        public void SendMessage(byte[] message)
         {
             try
             {
-                _logger.Info($"Sended message to user {Id}: {message}");
+                _logger.Info($"Sended message to user {Id}: {Encoding.UTF8.GetString(message)}");
 
                 Console.WriteLine("Отправлено сообщение - " + Id + " " + message);
-                byte[] data = Encoding.UTF8.GetBytes(message);
-                _networkStream.Write(data, 0, data.Length);
+                _networkStream.Write(message, 0, message.Length);
             }
             catch (Exception ex)
             {

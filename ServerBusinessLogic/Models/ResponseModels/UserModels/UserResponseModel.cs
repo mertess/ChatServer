@@ -5,7 +5,7 @@ namespace ServerBusinessLogic.ResponseModels.UserModels
 {
     public class UserResponseModel
     {
-        public int Id { get; set; }
+        public int UserId { get; set; }
 
         public string UserName { get; set; }
 

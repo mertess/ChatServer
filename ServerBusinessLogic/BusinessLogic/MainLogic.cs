@@ -229,8 +229,6 @@ namespace ServerBusinessLogic.BusinessLogic
             }
         }
 
-        public List<ChatResponseModel> GetChatByUsersId(List<int> usersId) => _chatLogic.GetChatsByUsersId(usersId);
-
         public OperationResultInfo GetPageOfChats(UserPaginationReceiveModel model)
         {
             try
@@ -254,6 +252,8 @@ namespace ServerBusinessLogic.BusinessLogic
                 };
             }
         }
+
+        public List<ChatResponseModel> GetChatsByUserId(int userId) => _chatLogic.GetChatsByUserId(userId);
 
         #endregion
         #region MessageLogicOperations

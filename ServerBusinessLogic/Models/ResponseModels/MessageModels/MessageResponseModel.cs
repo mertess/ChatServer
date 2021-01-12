@@ -13,6 +13,8 @@ namespace ServerBusinessLogic.ResponseModels.MessageModels
 
         public string UserMassage { get; set; }
 
+        public bool IsReaded { get; set; }
+
         public DateTime Date { get; set; }
 
         public FileModel File { get; set; }

@@ -30,6 +30,7 @@ namespace ServerDatabaseSystem.Implementation
                     FromUserId = messageModel.FromUserId,
                     Date = messageModel.Date,
                     UserMessage = messageModel.UserMassage,
+                    IsReaded = false,
                     FileName = messageModel.File?.FileName,
                     FileExtension = messageModel.File?.Extension,
                     File = messageModel.File?.BinaryForm
@@ -48,6 +49,7 @@ namespace ServerDatabaseSystem.Implementation
                     UserId = addedMessage.FromUserId,
                     ChatId = addedMessage.ChatId,
                     Date = addedMessage.Date,
+                    IsReaded = addedMessage.IsReaded,
                     UserMassage = addedMessage.UserMessage,
                     File = string.IsNullOrEmpty(addedMessage.FileName) ? null : new FileModel()
                     {
@@ -89,8 +91,11 @@ namespace ServerDatabaseSystem.Implementation
         {
             using (DatabaseContext context = new DatabaseContext())
             {
-                return context.Messages
-                    .Where(m => m.ChatId == chatModel.ChatId)
+                var messages = context.Messages.Where(m => m.ChatId == chatModel.ChatId);
+
+                messages.Reverse();
+
+                return messages
                     .Skip(chatModel.Page * 30)
                     .Take(30)
                     .Select(m => new MessageResponseModel()
@@ -99,6 +104,7 @@ namespace ServerDatabaseSystem.Implementation
                         UserMassage = m.UserMessage,
                         ChatId = m.ChatId,
                         UserId = m.FromUserId,
+                        IsReaded = m.IsReaded,
                         Date = m.Date,
                         File = string.IsNullOrEmpty(m.FileName) ? null : new FileModel()
                         {
@@ -125,8 +131,11 @@ namespace ServerDatabaseSystem.Implementation
                     if (messageDb == null)
                         throw new Exception("Сообщение не найдено");
 
-                    messageDb.UserMessage = message.UserMassage;
+                    messageDb.UserMessage = message.UserMassage ?? messageDb.UserMessage;
                     messageDb.IsReaded = message.IsReaded;
+                    messageDb.File = message.File?.BinaryForm ?? messageDb.File;
+                    messageDb.FileExtension = message.File?.Extension ?? messageDb.FileExtension;
+                    messageDb.FileName = message.File?.FileName ?? messageDb.FileName;
                     context.SaveChanges();
                 }
                 else
@@ -139,6 +148,7 @@ namespace ServerDatabaseSystem.Implementation
                 {
                     Id = updatedMessage.Id,
                     UserId = updatedMessage.FromUserId,
+                    IsReaded = updatedMessage.IsReaded,
                     ChatId = updatedMessage.ChatId,
                     Date = updatedMessage.Date,
                     UserMassage = updatedMessage.UserMessage,

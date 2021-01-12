@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using NLog;
+﻿using NLog;
 using ServerBusinessLogic.BusinessLogic;
 using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.Interfaces;
@@ -10,12 +9,12 @@ using ServerBusinessLogic.ReceiveModels.NotificationModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
 using ServerBusinessLogic.ResponseModels.MessageModels;
-using ServerBusinessLogic.ResponseModels.NotificationModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerBusinessLogic.TransmissionModels;
-using ServerDatabaseSystem.DbModels;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ChatTCPServer.Services
@@ -77,8 +76,8 @@ namespace ChatTCPServer.Services
                     OperationResult = OperationsResults.Successfully,
                     JsonData = _jsonStringSerializer.Serialize(message)
                 });
-                //ou.SendMessage(_encoder.Encryption(responseJson));
-                ou.SendMessage(responseJson);
+                ou.SendMessage(_encoder.Encryption(responseJson));
+                //ou.SendMessage(responseJson);
             });
         }
 
@@ -104,8 +103,8 @@ namespace ChatTCPServer.Services
                         ChatId = message.ChatId
                     })
                 });
-                //ou.SendMessage(_encoder.Encryption(responseJson));
-                ou.SendMessage(responseJson);
+                ou.SendMessage(_encoder.Encryption(responseJson));
+                //ou.SendMessage(responseJson);
             });
         }
 
@@ -128,8 +127,8 @@ namespace ChatTCPServer.Services
                     ToListener = ListenerType.ChatListListener
                 });
 
-                //cu.SendMessage(_encoder.Encryption(responseJson));
-                cu.SendMessage(responseJson);
+                cu.SendMessage(_encoder.Encryption(responseJson));
+                //cu.SendMessage(responseJson);
             });
         }
 
@@ -154,8 +153,8 @@ namespace ChatTCPServer.Services
             _logger.Info($"Sync updating chat {chatResponseModelAfterUpdate.Id}");
 
             //send responses for deleted users from chat
-            //Parallel.ForEach(deletedOnlineChatUsers, (cu) => cu.SendMessage(_encoder.Encryption(responseForDeletedUsersJson)));
-            Parallel.ForEach(deletedOnlineChatUsers, (cu) => cu.SendMessage(responseForDeletedUsersJson));
+            Parallel.ForEach(deletedOnlineChatUsers, (cu) => cu.SendMessage(_encoder.Encryption(responseForDeletedUsersJson)));
+            //Parallel.ForEach(deletedOnlineChatUsers, (cu) => cu.SendMessage(responseForDeletedUsersJson));
 
             var onlineChatUsers = _connectedClients.Where(cc => cc.Id != chatResponseModelAfterUpdate.CreatorId
                 && chatResponseModelAfterUpdate.ChatUsers.FirstOrDefault(cu => cu.Id == cc.Id) != null);
@@ -164,8 +163,8 @@ namespace ChatTCPServer.Services
             var responseJson = _jsonStringSerializer.Serialize(responseForDeletedUsers);
 
             //send responses for users of it's chat with info about updating
-            //Parallel.ForEach(onlineChatUsers, (cu) => cu.SendMessage(_encoder.Encryption(responseJson)));
-            Parallel.ForEach(onlineChatUsers, (cu) => cu.SendMessage(responseJson));
+            Parallel.ForEach(onlineChatUsers, (cu) => cu.SendMessage(_encoder.Encryption(responseJson)));
+            //Parallel.ForEach(onlineChatUsers, (cu) => cu.SendMessage(responseJson));
         }
 
         /// <summary>
@@ -187,8 +186,8 @@ namespace ChatTCPServer.Services
                     ToListener = ListenerType.ChatListDeleteListener
                 });
 
-                //cu.SendMessage(_encoder.Encryption(responseJson));
-                cu.SendMessage(responseJson);
+                cu.SendMessage(_encoder.Encryption(responseJson));
+                //cu.SendMessage(responseJson);
             });
         }
 
@@ -221,21 +220,21 @@ namespace ChatTCPServer.Services
                     {
                         var notificationDb = _mainLogic.GetNotification(notification);
 
-                        //endClient.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(new OperationResultInfo()
-                        //{
-                        //    ErrorInfo = string.Empty,
-                        //    OperationResult = OperationsResults.Successfully,
-                        //    ToListener = ListenerType.NotificationListListener,
-                        //    JsonData = _jsonStringSerializer.Serialize(notificationDb)
-                        //})));
-
-                        endClient.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
+                        endClient.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(new OperationResultInfo()
                         {
                             ErrorInfo = string.Empty,
                             OperationResult = OperationsResults.Successfully,
                             ToListener = ListenerType.NotificationListListener,
                             JsonData = _jsonStringSerializer.Serialize(notificationDb)
-                        }));
+                        })));
+
+                        //endClient.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
+                        //{
+                        //    ErrorInfo = string.Empty,
+                        //    OperationResult = OperationsResults.Successfully,
+                        //    ToListener = ListenerType.NotificationListListener,
+                        //    JsonData = _jsonStringSerializer.Serialize(notificationDb)
+                        //}));
                     });
                 }
             }
@@ -262,75 +261,75 @@ namespace ChatTCPServer.Services
 
                 if (user1 != null && user2 != null)
                 {
-                    var connectedUser1 = _connectedClients.FirstOrDefault(c => c.Id == user1.Id);
+                    var connectedUser1 = _connectedClients.FirstOrDefault(c => c.Id == user1.UserId);
                     if (connectedUser1 != null)
                     {
                         Task.Run(() =>
                         {
                             _logger.Info($"Sync send info about adding to friends for user {connectedUser1.Id}");
-                            //connectedUser1.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(new OperationResultInfo()
-                            //{
-                            //    ErrorInfo = string.Empty,
-                            //    OperationResult = OperationsResults.Successfully,
-                            //    ToListener = ListenerType.FriendListListener,
-                            //    JsonData = _jsonStringSerializer.Serialize(new UserListResponseModel()
-                            //    {
-                            //        UserId = user2.Id,
-                            //        UserName = user2.UserName,
-                            //        Picture = user2.File,
-                            //        IsOnline = user2.IsOnline
-                            //    })
-                            //})));
-
-                            connectedUser1.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
+                            connectedUser1.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(new OperationResultInfo()
                             {
                                 ErrorInfo = string.Empty,
                                 OperationResult = OperationsResults.Successfully,
                                 ToListener = ListenerType.FriendListListener,
                                 JsonData = _jsonStringSerializer.Serialize(new UserListResponseModel()
                                 {
-                                    UserId = user2.Id,
+                                    UserId = user2.UserId,
                                     UserName = user2.UserName,
                                     Picture = user2.File,
                                     IsOnline = user2.IsOnline
                                 })
-                            }));
+                            })));
+
+                            //connectedUser1.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
+                            //{
+                            //    ErrorInfo = string.Empty,
+                            //    OperationResult = OperationsResults.Successfully,
+                            //    ToListener = ListenerType.FriendListListener,
+                            //    JsonData = _jsonStringSerializer.Serialize(new UserListResponseModel()
+                            //    {
+                            //        UserId = user2.UserId,
+                            //        UserName = user2.UserName,
+                            //        Picture = user2.File,
+                            //        IsOnline = user2.IsOnline
+                            //    })
+                            //}));
                         });
                     }
-                
-                    var connectedUser2 = _connectedClients.FirstOrDefault(c => c.Id == user2.Id);
+
+                    var connectedUser2 = _connectedClients.FirstOrDefault(c => c.Id == user2.UserId);
                     if (connectedUser2 != null)
                     {
                         _logger.Info($"Sync send info about adding to friends for user {connectedUser2.Id}");
                         Task.Run(() =>
                         {
-                            //connectedUser2.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(new OperationResultInfo()
-                            //{
-                            //    ErrorInfo = string.Empty,
-                            //    OperationResult = OperationsResults.Successfully,
-                            //    ToListener = ListenerType.FriendListListener,
-                            //    JsonData = _jsonStringSerializer.Serialize(new UserListResponseModel()
-                            //    {
-                            //        UserId = user1.Id,
-                            //        UserName = user1.UserName,
-                            //        Picture = user1.File,
-                            //        IsOnline = user1.IsOnline
-                            //    })
-                            //})));
-
-                            connectedUser2.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
+                            connectedUser2.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(new OperationResultInfo()
                             {
                                 ErrorInfo = string.Empty,
                                 OperationResult = OperationsResults.Successfully,
                                 ToListener = ListenerType.FriendListListener,
                                 JsonData = _jsonStringSerializer.Serialize(new UserListResponseModel()
                                 {
-                                    UserId = user1.Id,
+                                    UserId = user1.UserId,
                                     UserName = user1.UserName,
                                     Picture = user1.File,
                                     IsOnline = user1.IsOnline
                                 })
-                            }));
+                            })));
+
+                            //connectedUser2.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
+                            //{
+                            //    ErrorInfo = string.Empty,
+                            //    OperationResult = OperationsResults.Successfully,
+                            //    ToListener = ListenerType.FriendListListener,
+                            //    JsonData = _jsonStringSerializer.Serialize(new UserListResponseModel()
+                            //    {
+                            //        UserId = user1.UserId,
+                            //        UserName = user1.UserName,
+                            //        Picture = user1.File,
+                            //        IsOnline = user1.IsOnline
+                            //    })
+                            //}));
                         });
                     }
                 }
@@ -347,7 +346,7 @@ namespace ChatTCPServer.Services
         {
             var onlineFriend = _connectedClients.FirstOrDefault(cc => cc.Id == friendReceiveModel.FriendId);
 
-            if(onlineFriend != null)
+            if (onlineFriend != null)
             {
                 _logger.Info($"Sync deleting friend {onlineFriend.Id} by user {friendReceiveModel.UserId}");
                 Task.Run(() =>
@@ -357,11 +356,11 @@ namespace ChatTCPServer.Services
                         ErrorInfo = string.Empty,
                         OperationResult = OperationsResults.Successfully,
                         ToListener = ListenerType.FriendListDeleteListener,
-                        JsonData = _jsonStringSerializer.Serialize(new UserListResponseModel(){ UserId = friendReceiveModel.UserId })
+                        JsonData = _jsonStringSerializer.Serialize(new UserListResponseModel() { UserId = friendReceiveModel.UserId })
                     });
 
-                    //onlineFriend.SendMessage(_encoder.Encryption(responseJson));
-                    onlineFriend.SendMessage(responseJson);
+                    onlineFriend.SendMessage(_encoder.Encryption(responseJson));
+                    //onlineFriend.SendMessage(responseJson);
                 });
             }
         }
@@ -371,74 +370,75 @@ namespace ChatTCPServer.Services
         /// </summary>
         public void SynchronizeOnlineStatus(UserResponseModel userReponseModel)
         {
-            var friends = _mainLogic.GetFriends(userReponseModel.Id);
+            var friends = _mainLogic.GetFriends(userReponseModel.UserId);
 
             var friendOnline = _connectedClients.Where(cc => friends.FirstOrDefault(f => f.UserId == cc.Id) != null);
 
-            _logger.Info($"Sync online status of user {userReponseModel.Id} user is {userReponseModel.IsOnline}");
+            _logger.Info($"Sync online status of user {userReponseModel.UserId} user is {userReponseModel.IsOnline}");
 
             Parallel.ForEach(friendOnline, (friend) =>
             {
-                //chats that contains current user and current user friend
-                var chats = _mainLogic.GetChatByUsersId(new List<int>() { friend.Id, userReponseModel.Id });
+                //synchronize friends friend-lists
 
-                //synchronize friends chats 
-                Task.Run(() =>
+                friend.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(new OperationResultInfo()
                 {
-                    //friend.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(new OperationResultInfo()
-                    //{
-                    //    ErrorInfo = string.Empty,
-                    //    OperationResult = OperationsResults.Successfully,
-                    //    ToListener = ListenerType.ChatListListener,
-                    //    JsonData = _jsonStringSerializer.Serialize(chats)
-                    //})));
+                    ErrorInfo = string.Empty,
+                    OperationResult = OperationsResults.Successfully,
+                    ToListener = ListenerType.FriendListListener,
+                    JsonData = _jsonStringSerializer.Serialize(new UserListResponseModel()
+                    {
+                        UserId = userReponseModel.UserId,
+                        UserName = userReponseModel.UserName,
+                        Picture = userReponseModel.File,
+                        IsOnline = userReponseModel.IsOnline
+                    })
+                })));
 
-                    friend.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
+                //friend.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
+                //{
+                //    ErrorInfo = string.Empty,
+                //    OperationResult = OperationsResults.Successfully,
+                //    ToListener = ListenerType.FriendListListener,
+                //    JsonData = _jsonStringSerializer.Serialize(new UserListResponseModel()
+                //    {
+                //        UserId = userReponseModel.UserId,
+                //        UserName = userReponseModel.UserName,
+                //        Picture = userReponseModel.File,
+                //        IsOnline = userReponseModel.IsOnline
+                //    })
+                //}));
+            });
+
+            var userChats = _mainLogic.GetChatsByUserId(userReponseModel.UserId);
+
+            var onlineUsers = new BlockingCollection<(Client, ChatResponseModel)>();
+
+            var result = Parallel.ForEach(userChats, chat =>
+            {
+                var chatUsersOnline = _connectedClients.Where(cc => cc.Id != userReponseModel.UserId && chat.ChatUsers.FirstOrDefault(cu => cu.Id == cc.Id) != null);
+
+                foreach (var user in chatUsersOnline)
+                        onlineUsers.TryAdd((user, chat), Timeout.Infinite);
+            });
+
+            if (result.IsCompleted)
+            {
+                Parallel.ForEach(onlineUsers.GroupBy(ou => ou.Item1), onlineUser =>
+                {
+                    onlineUser.Key.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(new OperationResultInfo()
                     {
                         ErrorInfo = string.Empty,
                         OperationResult = OperationsResults.Successfully,
                         ToListener = ListenerType.ChatListListener,
-                        JsonData = _jsonStringSerializer.Serialize(chats)
-                    }));
+                        JsonData = _jsonStringSerializer.Serialize(onlineUser.Select(group => group.Item2).ToList())
+                    })));
                 });
-
-                //synchronize friends friend-lists
-                Task.Run(() =>
-                {
-                    //friend.SendMessage(_encoder.Encryption(_jsonStringSerializer.Serialize(new OperationResultInfo() 
-                    //{
-                    //    ErrorInfo = string.Empty,
-                    //    OperationResult = OperationsResults.Successfully,
-                    //    ToListener = ListenerType.FriendListListener,
-                    //    JsonData = _jsonStringSerializer.Serialize(new UserListResponseModel() 
-                    //    {
-                    //        UserId = userReponseModel.Id,
-                    //        UserName = userReponseModel.UserName,
-                    //        Picture = userReponseModel.File,
-                    //        IsOnline = userReponseModel.IsOnline
-                    //    })
-                    //})));
-
-                    friend.SendMessage(_jsonStringSerializer.Serialize(new OperationResultInfo()
-                    {
-                        ErrorInfo = string.Empty,
-                        OperationResult = OperationsResults.Successfully,
-                        ToListener = ListenerType.FriendListListener,
-                        JsonData = _jsonStringSerializer.Serialize(new UserListResponseModel()
-                        {
-                            UserId = userReponseModel.Id,
-                            UserName = userReponseModel.UserName,
-                            Picture = userReponseModel.File,
-                            IsOnline = userReponseModel.IsOnline
-                        })
-                    }));
-                });
-            });
+            }
         }
 
-        public void SynchronizeOfflineStatus(Client client) 
+        public void SynchronizeOfflineStatus(Client client)
         {
-            var result =  _mainLogic.UserProfileUpdate(new UserReceiveModel() { Id = client.Id, IsOnline = false });
+            var result = _mainLogic.UserProfileUpdate(new UserReceiveModel() { Id = client.Id, IsOnline = false });
 
             if (result.OperationResult == OperationsResults.Successfully)
                 SynchronizeOnlineStatus(_mainLogic.GetUser(new UserReceiveModel() { Id = client.Id }).JsonData as UserResponseModel);

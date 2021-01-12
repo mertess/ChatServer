@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ServerBusinessLogic.ResponseModels.MessageModels;
+using System.Collections.Generic;
 
 namespace ServerBusinessLogic.ResponseModels.ChatModels
 {
@@ -13,5 +14,7 @@ namespace ServerBusinessLogic.ResponseModels.ChatModels
         public int CountUsers { get; set; }
 
         public List<ChatUserResponseModel> ChatUsers { get; set; }
+
+        public List<MessageResponseModel> LastMessages { get; set; }
     }
 }

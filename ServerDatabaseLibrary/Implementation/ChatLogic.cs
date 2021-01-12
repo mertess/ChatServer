@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServerBusinessLogic.Interfaces.DataServices;
 using ServerBusinessLogic.Models;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ReceiveModels.UserModels;
 using ServerBusinessLogic.ResponseModels.ChatModels;
+using ServerBusinessLogic.ResponseModels.MessageModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerDatabaseSystem.DbModels;
 using ServerDatabaseSystem.Services;
@@ -11,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
 
 namespace ServerDatabaseSystem.Implementation
 {
@@ -24,7 +27,13 @@ namespace ServerDatabaseSystem.Implementation
         /// </summary>
         private readonly UserChatBinder _userChatBinder;
 
-        public ChatLogic() => _userChatBinder = new UserChatBinder();
+        private readonly MessageLogic _messageLogic;
+
+        public ChatLogic() 
+        { 
+            _userChatBinder = new UserChatBinder();
+            _messageLogic = new MessageLogic();
+        }
 
         /// <summary>
         /// Creating a new chat in Database and binding users with that chat  
@@ -106,6 +115,31 @@ namespace ServerDatabaseSystem.Implementation
         }
 
         /// <summary>
+        /// Getting chats by UserId from database
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public List<ChatResponseModel> GetChatsByUserId(int userId)
+        {
+            using (var context = new DatabaseContext())
+            {
+                return context.RelationChatUsers
+                    .Where(rcu => rcu.UserId == userId)
+                    .Include(rcu => rcu.Chat)
+                    .ToList()
+                    .Select(rcu => new ChatResponseModel()
+                    {
+                        Id = rcu.ChatId,
+                        ChatName = rcu.Chat.ChatName,
+                        CreatorId = rcu.Chat.CreatorId,
+                        CountUsers = rcu.Chat.CountUsers,
+                        ChatUsers = GetChatUsers(rcu.ChatId)
+                    })
+                    .ToList();
+            }
+        }
+
+        /// <summary>
         /// Getting chat and binded users with that chat using chat Id 
         /// </summary>
         /// <param name="model"><see cref="ChatReceiveModel"/></param>
@@ -117,6 +151,7 @@ namespace ServerDatabaseSystem.Implementation
                 var chat = context.Chats.FirstOrDefault(c => c.Id == model.Id);
                 if (chat == null)
                     throw new Exception("Чат не найден в БД");
+
                 return new ChatResponseModel()
                 {
                     Id = chat.Id,
@@ -125,31 +160,6 @@ namespace ServerDatabaseSystem.Implementation
                     CountUsers = chat.CountUsers,
                     ChatUsers = GetChatUsers(chat.Id)
                 };
-            }
-        }
-
-        /// <summary>
-        /// Getting chat by users id 
-        /// </summary>
-        /// <param name="usersId"></param>
-        /// <returns><see cref="ChatResponseModel"/></returns>
-        public List<ChatResponseModel> GetChatsByUsersId(List<int> usersId)
-        {
-            using(var context = new DatabaseContext())
-            {
-                return context.Chats
-                    .Include(c => c.RelatChatUsers)
-                    .ToList()
-                    .Where(c => c.RelatChatUsers.Where(rcu => usersId.Contains(rcu.UserId)).Count() > 1)
-                    .Select(c => new ChatResponseModel()
-                    {
-                        Id = c.Id,
-                        ChatName = c.ChatName,
-                        CreatorId = c.CreatorId,
-                        CountUsers = c.CountUsers,
-                        ChatUsers = GetChatUsers(c.Id)
-                    })
-                    .ToList();
             }
         }
 
@@ -190,10 +200,14 @@ namespace ServerDatabaseSystem.Implementation
         {
             using (DatabaseContext context = new DatabaseContext())
             {
-                return context.RelationChatUsers
+                var relationChatUsers = context.RelationChatUsers
                     .Where(rcu => rcu.UserId == userPagination.UserId)
                     .Include(rcu => rcu.Chat)
-                    .Select(rcu => rcu.Chat)
+                    .Select(rcu => rcu.Chat);
+
+                relationChatUsers.Reverse();
+
+                return relationChatUsers
                     .Skip(userPagination.Page * 10)
                     .Take(10)
                     .Select(chat => new ChatResponseModel()
@@ -217,7 +231,8 @@ namespace ServerDatabaseSystem.Implementation
                                 IsOnline = rcu.User.IsOnline
                             })
                             .ToList(),
-                        CountUsers = chat.CountUsers
+                        CountUsers = chat.CountUsers,
+                        LastMessages = _messageLogic.ReadPage(new ChatPaginationReceiveModel() { ChatId = chat.Id, Page = 0 })
                     })
                     .ToList();
             }

@@ -83,7 +83,7 @@ namespace ServerDatabaseSystem.Implementation
 
                 return new UserResponseModel()
                 {
-                    Id = userDb.Id,
+                    UserId = userDb.Id,
                     UserName = userDb.UserName,
                     Name = userDb.Name,
                     SecondName = userDb.SecondName,
@@ -111,28 +111,18 @@ namespace ServerDatabaseSystem.Implementation
         {
             using (DatabaseContext context = new DatabaseContext())
             {
-                return string.IsNullOrEmpty(userModel.SearchingUserName)
+                var users = string.IsNullOrEmpty(userModel.SearchingUserName)
                     ? context.Users
                     .Where(u => u.Id != userModel.UserId)
-                    .Skip(userModel.Page * 15)
-                    .Take(15)
-                    .Select(u => new UserListResponseModel()
-                    {
-                        UserId = u.Id,
-                        UserName = u.UserName,
-                        Picture = new FileModel()
-                        {
-                            FileName = u.PictureName,
-                            Extension = u.PictureExtension,
-                            BinaryForm = u.Picture
-                        },
-                        IsOnline = u.IsOnline
-                    })
-                    .ToList()
-                    : context.Users
+                    :
+                    context.Users
                     .Where(u => u.Id != userModel.UserId)
                     .ToList()
-                    .Where(u => u.UserName.StartsWith(userModel.SearchingUserName, true, CultureInfo.InvariantCulture))
+                    .Where(u => u.UserName.StartsWith(userModel.SearchingUserName, true, CultureInfo.InvariantCulture));
+
+                users.Reverse();
+
+                return users
                     .Skip(userModel.Page * 15)
                     .Take(15)
                     .Select(u => new UserListResponseModel()

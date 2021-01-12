@@ -72,11 +72,15 @@ namespace ServerDatabaseSystem.Implementation
         {
             using (var context = new DatabaseContext())
             {
-                return context.Notifications
+                var notifications = context.Notifications
                     .Where(n => n.ToUserId == model.UserId && n.IsAccepted == false)
+                    .Include(n => n.FromUser);
+
+                notifications.Reverse();
+
+                return notifications
                     .Skip(model.Page * 10)
                     .Take(10)
-                    .Include(n => n.FromUser)
                     .Select(n => new NotificationResponseModel()
                     {
                         Id = n.Id,
