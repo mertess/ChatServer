@@ -83,7 +83,7 @@ namespace ServerDatabaseSystem.Implementation
 
                 return new UserResponseModel()
                 {
-                    Id = userDb.Id,
+                    UserId = userDb.Id,
                     UserName = userDb.UserName,
                     Name = userDb.Name,
                     SecondName = userDb.SecondName,

@@ -115,6 +115,31 @@ namespace ServerDatabaseSystem.Implementation
         }
 
         /// <summary>
+        /// Getting chats by UserId from database
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public List<ChatResponseModel> GetChatsByUserId(int userId)
+        {
+            using (var context = new DatabaseContext())
+            {
+                return context.RelationChatUsers
+                    .Where(rcu => rcu.UserId == userId)
+                    .Include(rcu => rcu.Chat)
+                    .ToList()
+                    .Select(rcu => new ChatResponseModel()
+                    {
+                        Id = rcu.ChatId,
+                        ChatName = rcu.Chat.ChatName,
+                        CreatorId = rcu.Chat.CreatorId,
+                        CountUsers = rcu.Chat.CountUsers,
+                        ChatUsers = GetChatUsers(rcu.ChatId)
+                    })
+                    .ToList();
+            }
+        }
+
+        /// <summary>
         /// Getting chat and binded users with that chat using chat Id 
         /// </summary>
         /// <param name="model"><see cref="ChatReceiveModel"/></param>
@@ -135,32 +160,6 @@ namespace ServerDatabaseSystem.Implementation
                     CountUsers = chat.CountUsers,
                     ChatUsers = GetChatUsers(chat.Id)
                 };
-            }
-        }
-
-        /// <summary>
-        /// Getting chat by users id 
-        /// </summary>
-        /// <param name="usersId"></param>
-        /// <returns><see cref="ChatResponseModel"/></returns>
-        public List<ChatResponseModel> GetChatsByUsersId(List<int> usersId)
-        {
-            using(var context = new DatabaseContext())
-            {
-                return context.Chats
-                    .Include(c => c.RelatChatUsers)
-                    .ToList()
-                    .Where(c => c.RelatChatUsers.Where(rcu => usersId.Contains(rcu.UserId)).Count() > 1)
-                    .Select(c => new ChatResponseModel()
-                    {
-                        Id = c.Id,
-                        ChatName = c.ChatName,
-                        CreatorId = c.CreatorId,
-                        CountUsers = c.CountUsers,
-                        ChatUsers = GetChatUsers(c.Id),
-                        LastMessages = _messageLogic.ReadPage(new ChatPaginationReceiveModel() { ChatId = c.Id, Page = 0 })
-                    })
-                    .ToList();
             }
         }
 

@@ -104,7 +104,7 @@ namespace ChatTCPServer.Services
 
                         if (authorizationResult.OperationResult == OperationsResults.Successfully)
                         {
-                            _client.Id = (authorizationResult.JsonData as UserResponseModel).Id;
+                            _client.Id = (authorizationResult.JsonData as UserResponseModel).UserId;
                             Console.WriteLine(_client.Id + " Пользователь успешно авторизировался");
 
                             _logger.Info($"User {_client.Id} authorization is successfully");

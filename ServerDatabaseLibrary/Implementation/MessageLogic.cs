@@ -131,8 +131,11 @@ namespace ServerDatabaseSystem.Implementation
                     if (messageDb == null)
                         throw new Exception("Сообщение не найдено");
 
-                    messageDb.UserMessage = message.UserMassage;
+                    messageDb.UserMessage = message.UserMassage ?? messageDb.UserMessage;
                     messageDb.IsReaded = message.IsReaded;
+                    messageDb.File = message.File?.BinaryForm ?? messageDb.File;
+                    messageDb.FileExtension = message.File?.Extension ?? messageDb.FileExtension;
+                    messageDb.FileName = message.File?.FileName ?? messageDb.FileName;
                     context.SaveChanges();
                 }
                 else
