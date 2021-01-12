@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using ServerBusinessLogic.Interfaces;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -7,7 +8,7 @@ namespace ChatTCPServer.Services
     /// <summary>
     /// Service for encryption/decryption messages 
     /// </summary>
-    public class Encoder
+    public class Encoder : IEncoder
     {
         private readonly byte[] _key = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 };
 

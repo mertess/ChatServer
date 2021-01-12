@@ -37,7 +37,7 @@ namespace ChatTCPServer.Services
 
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        private Encoder _encoder;
+        private IEncoder _encoder;
 
         /// <summary>
         /// Constructor
