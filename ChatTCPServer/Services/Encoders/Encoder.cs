@@ -3,7 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace ChatTCPServer.Services
+namespace ChatTCPServer.Services.Encoders
 {
     /// <summary>
     /// Service for encryption/decryption messages 

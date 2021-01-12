@@ -53,7 +53,7 @@ namespace ChatTCPTestClient
         static Dictionary<int, List<MessageResponseModel>> messages = new Dictionary<int, List<MessageResponseModel>>();
         static List<NotificationResponseModel> notifications = new List<NotificationResponseModel>();
 
-        static ChatTCPServer.Services.Encoder encoder;
+        static ChatTCPServer.Services.Encoders.Encoder encoder;
 
         static void Main(string[] args)
         {
@@ -64,7 +64,7 @@ namespace ChatTCPTestClient
                 tcpClient = new TcpClient();
                 tcpClient.Connect(IPAddress.Parse(serverIp), serverPort);
 
-                encoder = new ChatTCPServer.Services.Encoder();
+                encoder = new ChatTCPServer.Services.Encoders.Encoder();
                 networkStream = tcpClient.GetStream();
 
                 DataManager.AddListener(ListenerType.AuthorizationListener, AuthorizationListener);
