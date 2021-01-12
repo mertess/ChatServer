@@ -28,9 +28,6 @@
 
         //notifications
         UpdateNotification,
-        GetNotifications,
-
-        //encoding
-        SendEncodingPublicKey
+        GetNotifications
     }
 }

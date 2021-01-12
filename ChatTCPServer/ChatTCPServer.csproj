@@ -184,8 +184,7 @@
     <Compile Include="Client.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\Encoder.cs" />
-    <Compile Include="Services\Serializers\JsonBinarySerializer.cs" />
+    <Compile Include="Services\Encoders\Encoder.cs" />
     <Compile Include="Services\RequestHandler.cs" />
     <Compile Include="Services\Serializers\JsonStringSerializer.cs" />
     <Compile Include="Server.cs" />

@@ -18,6 +18,7 @@ using ServerBusinessLogic.TransmissionModels;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -62,6 +63,8 @@ namespace ChatTCPTestClient
                 Console.InputEncoding = Encoding.Unicode;
                 tcpClient = new TcpClient();
                 tcpClient.Connect(IPAddress.Parse(serverIp), serverPort);
+
+                encoder = new ChatTCPServer.Services.Encoder();
                 networkStream = tcpClient.GetStream();
 
                 DataManager.AddListener(ListenerType.AuthorizationListener, AuthorizationListener);
@@ -76,7 +79,6 @@ namespace ChatTCPTestClient
                 DataManager.AddListener(ListenerType.NotificationListListener, NotificationListListener);
                 DataManager.AddListener(ListenerType.UserInfoListener, UserInfoListener);
                 DataManager.AddListener(ListenerType.UserUpdateProfileListener, UserUpdateProfileListener);
-                DataManager.AddListener(ListenerType.EncodingListener, EncodingListener);
 
                 Task.Run(() => RecieveMessages());
              
@@ -365,16 +367,6 @@ namespace ChatTCPTestClient
                             });
                             Console.WriteLine();
                             break;
-                        case "!set_keys":
-                            KeysConfiguration(new EncodingModel()
-                            {
-                                PublicKey = new int[]
-                                {
-                                    Convert.ToInt32(ConfigurationManager.AppSettings["publicClientKeyPart1"]),
-                                    Convert.ToInt32(ConfigurationManager.AppSettings["clientKeyPart2"]),
-                                }
-                            });
-                            break;
                         case "!help":
                             Console.Clear();
                             Console.WriteLine("All commands:");
@@ -397,7 +389,6 @@ namespace ChatTCPTestClient
                             Console.WriteLine("delete_message +");
                             Console.WriteLine("delete_friend +");
                             Console.WriteLine("get_user +");
-                            Console.WriteLine("set_keys");
                             Console.WriteLine("show_users");
                             Console.WriteLine("show_chats");
                             Console.WriteLine("show_chat_info");
@@ -478,17 +469,6 @@ namespace ChatTCPTestClient
         }
 
         #region user operations
-        #region app
-        static void KeysConfiguration(EncodingModel encodingModel)
-        {
-            SendMessage(new ClientOperationMessage()
-            {
-                Operation = ClientOperations.SendEncodingPublicKey,
-                JsonData = serializer.Serialize(encodingModel)
-            });
-        }
-
-        #endregion
         #region users
         static void Registration(string login, string password)
         {
@@ -672,17 +652,9 @@ namespace ChatTCPTestClient
 
         static void SendMessage(ClientOperationMessage clientOperationMessage)
         {
-            byte[] data;
-            if (encoder == null)
-            {
-                data = Encoding.UTF8.GetBytes(serializer.Serialize(clientOperationMessage));
-                Console.WriteLine("sended data : " + serializer.Serialize(clientOperationMessage));
-            }
-            else
-            {
-                data = Encoding.UTF8.GetBytes(encoder.Encryption(serializer.Serialize(clientOperationMessage)));
-                Console.WriteLine("sended data : " + encoder.Encryption(serializer.Serialize(clientOperationMessage)));
-            }
+            byte[] data = encoder.Encryption(serializer.Serialize(clientOperationMessage));
+            
+            Console.WriteLine("sended data : " + encoder.Encryption(serializer.Serialize(clientOperationMessage)));
 
             Console.WriteLine("data send length = " + data.Length);
             networkStream.Write(data, 0, data.Length);
@@ -691,28 +663,27 @@ namespace ChatTCPTestClient
         static void RecieveMessages()
         {
             byte[] data = new byte[256];
+            List<byte> byteMessage = new List<byte>();
+
             while (true)
             {
-                StringBuilder stringBuilder = new StringBuilder();
                 do
                 {
                     //!!! Считываем количество прочитанных байтов, а затем именно это кол-во переводим в строку!!!
                     //!!! Если переводить в строку постоянное колиество байтов из буффера - то в случае, если прочитанных байт будет меньше
                     //!!! чем мы переводим в строку - то мы получим пробелы, и вся десериализация провалится. 
                     int count = networkStream.Read(data, 0, 256);
-                    stringBuilder.Append(Encoding.UTF8.GetString(data, 0, count));
+
+                    for(int i = 0; i < count; i++)
+                    {
+                        byteMessage.Add(data[i]);
+                    }
                 } while (networkStream.DataAvailable);
 
                 try
                 {
-                    OperationResultInfo obj;
-                    if (encoder == null)
-                        obj = serializer.Deserialize<OperationResultInfo>(stringBuilder.ToString());
-                    else
-                        obj = serializer.Deserialize<OperationResultInfo>(encoder.Decryption(stringBuilder.ToString()));
-                    Console.WriteLine("received data : " + stringBuilder.ToString());
-
-                    stringBuilder.Clear();
+                    OperationResultInfo obj = serializer.Deserialize<OperationResultInfo>(encoder.Decryption(byteMessage.ToArray()));
+                    byteMessage.Clear();
                     DataManager.HandleData(obj.ToListener, obj);
                 }
                 catch (Exception ex) { Console.WriteLine(ex.Message); }
@@ -1106,29 +1077,6 @@ namespace ChatTCPTestClient
             catch { }
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine();
-        }
-
-        static void EncodingListener(OperationResultInfo operationResultInfo)
-        {
-            Console.WriteLine();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Operation result = " + Enum.GetName(typeof(OperationsResults), operationResultInfo.OperationResult));
-            Console.WriteLine("Error info = " + operationResultInfo.ErrorInfo);
-            Console.WriteLine("Listener = " + Enum.GetName(typeof(ListenerType), operationResultInfo.ToListener));
-            var data = serializer.Deserialize<EncodingModel>(operationResultInfo.JsonData.ToString());
-            if(data != null)
-            {
-                encoder = new ChatTCPServer.Services.Encoder(data.PublicKey, new int[]
-                {
-                    Convert.ToInt32(ConfigurationManager.AppSettings["privateClientKeyPart1"]),
-                    Convert.ToInt32(ConfigurationManager.AppSettings["clientKeyPart2"]),
-                });
-
-                Console.WriteLine();
-                Console.WriteLine("--EncodingKeys received by app initialization : ");
-                Console.WriteLine("server public key part 1 = " + data.PublicKey[0]);
-                Console.WriteLine("server public key part 2 = " + data.PublicKey[1]);
-            }
         }
 
         #endregion
