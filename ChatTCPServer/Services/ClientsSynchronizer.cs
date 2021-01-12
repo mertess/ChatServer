@@ -43,14 +43,14 @@ namespace ChatTCPServer.Services
 
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        private readonly Encoder _encoder;
+        private readonly IEncoder _encoder;
 
 
         public ClientsSynchronizer(
             List<Client> connectedClients,
             MainLogic mainLogic,
             ISerializer<string> jsonStringSerializer,
-            Encoder encoder)
+            IEncoder encoder)
         {
             _mainLogic = mainLogic;
             _connectedClients = connectedClients;

@@ -15,6 +15,7 @@ using ServerBusinessLogic.ResponseModels.NotificationModels;
 using ServerBusinessLogic.ResponseModels.UserModels;
 using ServerBusinessLogic.TransmissionModels;
 using ServerDatabaseSystem.Implementation;
+using ChatTCPServer.Services.Encoders;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -37,7 +38,7 @@ namespace ChatTCPServer.Services
 
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        private Encoder _encoder;
+        private IEncoder _encoder;
 
         /// <summary>
         /// Constructor
@@ -63,7 +64,7 @@ namespace ChatTCPServer.Services
                     new NotificationLogic()
                 );
             _jsonStringSerializer = jsonStringSerializer;
-            _encoder = new Encoder();
+            _encoder = new Encoders.Encoder();
             _clientsSynchronizer = new ClientsSynchronizer(connectedClients, _mainLogic, jsonStringSerializer, _encoder);
         }
 
