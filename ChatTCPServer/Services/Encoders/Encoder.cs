@@ -1,4 +1,5 @@
 ﻿using ServerBusinessLogic.Interfaces;
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -22,6 +23,8 @@ namespace ChatTCPServer.Services.Encoders
                     aes.Key = _key;
 
                     byte[] iv = aes.IV;
+
+                    Console.WriteLine(aes.KeySize);
 
                     ms.Write(iv, 0, iv.Length);
 

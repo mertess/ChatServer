@@ -4,7 +4,6 @@ using Microsoft.SqlServer.Server;
 using ServerBusinessLogic.Enums;
 using ServerBusinessLogic.Enums.Transmission;
 using ServerBusinessLogic.Models;
-using ServerBusinessLogic.Models.ResponseModels.EncodingModels;
 using ServerBusinessLogic.ReceiveModels.ChatModels;
 using ServerBusinessLogic.ReceiveModels.FriendModels;
 using ServerBusinessLogic.ReceiveModels.MessageModels;

@@ -89,9 +89,6 @@ namespace ChatTCPServer
         {
             try
             {
-                _logger.Info($"Sended message to user {Id}: {Encoding.UTF8.GetString(message)}");
-
-                Console.WriteLine("Отправлено сообщение - " + Id + " " + message);
                 _networkStream.Write(message, 0, message.Length);
             }
             catch (Exception ex)
